@@ -31,7 +31,7 @@ export const RESEARCH_ORDER = ["ccaas", "iva", "agent-assist", "wem-qm", "analyt
 /* Reports that exist on the site, with what each one is. */
 export const REPORTS = [
   { title: "Why a CCaaS migration may not cut costs", href: "/research/ccaas-migration-costs", what: "An article on where contact center migration costs go." },
-  { title: "CCaaS Platform Buyer's Guide, Phase 1 edition", href: "/research/ccaas-buyer-guide", what: "The April 2026 edition, 19 pages, kept as a dated download. Its scores and tiers are withdrawn on the site while current research is published." },
+  { title: "CCaaS Platform Buyer's Guide, April 2026 edition", href: "/research/ccaas-buyer-guide", what: "A dated download of 19 pages. Its scores and tiers are withdrawn on the site while we publish newer research." },
 ];
 
 function Section({ id, title, kicker, children }) {

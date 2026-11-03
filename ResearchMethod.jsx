@@ -24,7 +24,7 @@ export default function ResearchMethod() {
         <header style={{ display: "flex", flexDirection: "column", gap: 10 }}>
           <span style={{ ...K.kicker, color: ACCENT }}>Vendor Intelligence</span>
           <h1 style={{ margin: 0, fontSize: "clamp(28px, 4vw, 40px)", fontWeight: 700, lineHeight: 1.12, color: HOUSE.mist }}>How we research vendors</h1>
-          <p style={K.body}>Every platform passes the demo. Our research looks at what happens after you sign: where it breaks, who runs it, what it costs in year two, and how to prove it before the contract. This page explains how that research is done.</p>
+          <p style={K.body}>Every platform passes the demo. Our research looks at what happens after you sign: where it breaks, who runs it, what it costs in year two, and how to prove it before the contract. This page explains how we do it.</p>
           <p style={K.small}>{INDEPENDENCE}</p>
         </header>
 
@@ -50,7 +50,7 @@ export default function ResearchMethod() {
         </section>
 
         <section aria-labelledby="steps" style={K.panel}>
-          <h2 id="steps" style={K.h2}>How a vendor is completed</h2>
+          <h2 id="steps" style={K.h2}>The steps for every vendor</h2>
           <ol style={list}>{STEPS.map((x) => <li key={x.t} style={K.body}><strong style={K.strong}>{x.t}.</strong> {x.d}</li>)}</ol>
         </section>
 

@@ -58,15 +58,15 @@ for (const c of INDEX.classes) {
   const only = render({ initialClass: c.id }), ot = text(only);
   const others = INDEX.classes.filter((x) => x.id !== c.id).flatMap((x) => x.vendors);
   ok(`${c.id} filter shows exactly its vendors`, c.vendors.every((v) => only.includes(`href="/vendors/${SLUG[v.id]}"`)) && others.every((v) => !only.includes(`href="/vendors/${SLUG[v.id]}"`)));
-  ok(`${c.id} filter shows its research class word for word`, ot.includes(`Research class: ${c.name}. ${c.definition}`));
-  let at = ot.indexOf(`Research class: ${c.name}`);
+  ok(`${c.id} filter shows its research class word for word`, ot.includes(`The research calls this group ${c.name}. ${c.definition}`));
+  let at = ot.indexOf(`The research calls this group ${c.name}`);
   for (const v of c.vendors) {
     seen.push(v.id);
     const i = ot.indexOf(v.name, at);
     ok(`${v.name}: in order inside ${c.id}`, i > at); at = i;
     const block = ot.slice(i, i + 900);
-    ok(`${v.name}: best-when statement or its absence`, v.bestWhen ? block.includes(norm(v.bestWhen.statement)) : block.includes("No best-when statement is published"));
-    ok(`${v.name}: compared on and validated`, block.includes(`Compared on: ${PLAIN[c.id].compared}`) && block.includes(`Research validated ${fmtDate(v.validated)}`));
+    ok(`${v.name}: best-when statement or its absence`, v.bestWhen ? block.includes(norm(v.bestWhen.statement)) : block.includes("We have not yet published a strong-fit statement"));
+    ok(`${v.name}: compared on and validated`, block.includes(`Compared on: ${PLAIN[c.id].compared}`) && block.includes(`Research checked ${fmtDate(v.validated)}`));
     ok(`${v.name}: validation date equals the registry`, v.validated === CCAAS_RESEARCH.complete[SLUG[v.id]].validated);
   }
 }
@@ -125,7 +125,7 @@ section("4b. Tags: what each vendor sells and the sizes it is sold to");
   ok("every caveat renders under its vendor", INDEX.classes.every((c) => c.vendors.every((v) => tagsFor(v.id).notes.every((n) => t.includes(`${n.tag}: ${n.text}`)))));
   ok("Avaya's UCaaS tag carries its US public sector scope in the label", t.includes("UCaaS + CCaaS (US public sector)"));
   const hp = renderToString(React.createElement(Page, { initialSize: "SMB", initialClass: (INDEX.classes.find((c) => c.vendors.every((v) => !tagsFor(v.id).sizes.some((x) => x.size === "SMB"))) || INDEX.classes[0]).id }));
-  ok("a class with no match after filtering says so", text(hp).includes("No researched vendor in this class matches these filters") || vendorsIn(hp).length > 0);
+  ok("a class with no match after filtering says so", text(hp).includes("No researched vendor in this group matches these filters") || vendorsIn(hp).length > 0);
   ok("filters never reorder: a filtered class keeps A to Z", INDEX.classes.every((c) => { const h = text(renderToString(React.createElement(Page, { initialClass: c.id, initialSize: "Midmarket" }))); const names = c.vendors.filter((v) => tagsFor(v.id).sizes.some((x) => x.size === "Midmarket")).map((v) => v.name); let at = 0; return names.every((n) => { const k = h.indexOf(n, at); if (k < 0) return false; at = k; return true; }); }));
   ok("the not yet researched carry the Phase 1 description, labelled", core.filter((v) => ccaasResearchStatus(v.slug) !== "complete" && v.segment).every((v) => t.includes(`Our earlier description: ${v.segment}`)));
 }

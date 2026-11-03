@@ -446,11 +446,11 @@ function gradeFCR({ I, r, pre, railOrigin }) {
     const parts = [];
     const def = named(list, "default"), self = named(list, "self"), rail = named(list, "rail");
     if (def.length) parts.push(`${say(def)} ${def.length > 1 ? "are" : "is"} still at the tool default`);
-    if (self.length) parts.push(`${say(self)} ${self.length > 1 ? "were" : "was"} restored from this tool's own last run, and a tool never credentials itself, so it counts as unverified`);
+    if (self.length) parts.push(`${say(self)} ${self.length > 1 ? "were" : "was"} restored from this tool's own last run, and a tool cannot vouch for its own figures, so it counts as unverified`);
     if (rail.length) {
       const seen = [...new Set(list.filter(([f]) => origins[f] === "rail").map(([f]) => (pre && pre[f] && pre[f].origin) || railOrigin).map((g) => g || "none"))];
       const noted = seen.length === 1 && seen[0] === "none" ? "with no recorded origin grade" : `with an origin grade of ${say(seen)}`;
-      parts.push(`${say(rail)} arrived over the rail ${noted}. A value from another tool keeps your tools consistent, and its evidence goes only as far as where it came from`);
+      parts.push(`${say(rail)} came from another tool ${noted}. A value from another tool keeps your tools consistent, and its evidence goes only as far as where it came from`);
     }
     return parts;
   };
@@ -469,7 +469,7 @@ function gradeFCR({ I, r, pre, railOrigin }) {
     ? "Per-contact billing falls directly with volume, so no capacity action applies. It is held at Planning-grade until a minimum volume commitment is ruled out"
     : inhouseVendor
       ? `${MECH.vendor.label} on in-house sourcing is held at Planning-grade, because the outsourcer invoice it would reduce is not confirmed by anything this tool collects`
-      : `${MECH[r.mechKey].label} is credited as ${MECH[r.mechKey].cred} in mech.js, because ${MECH_REASON[r.mechKey] || "that is its credit class"}`;
+      : `${MECH[r.mechKey].label} is credited as ${MECH[r.mechKey].cred} under our capacity-action rules, because ${MECH_REASON[r.mechKey] || "that is its credit class"}`;
 
   const blockers = [];
   const corrected = r.enumCorrections.length + r.numericCorrections.length + r.measuredCorrections.length + (r.fcrImpossible ? 1 : 0) + (r.negImpossible ? 1 : 0) + (r.fcrWasPercent ? 1 : 0);

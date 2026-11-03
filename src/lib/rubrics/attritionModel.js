@@ -51,7 +51,7 @@ export const ATTRITION_MODEL = {
     { name: "Avoided by a lower rate", formula: "Departures avoided × backfill × (cash per departure + capacity per departure × the action's share)", note: "Priced at 5, 10, 15 and 20 points lower. With a cost per point, net and return are shown." },
   ],
   bands: [
-    { label: "Frontline planning band", range: b("attrition.band.low") + " to " + b("attrition.band.high") + "% of salary", meaning: "Inside it, completeness can reach Finance-grade. A planning check set by this platform, with no published study behind it." },
+    { label: "Frontline planning band", range: b("attrition.band.low") + " to " + b("attrition.band.high") + "% of salary", meaning: "Inside it, completeness can reach Finance-grade. A planning check we set, with no published study behind it." },
     { label: "Plausible range", range: b("attrition.band.floor") + "% to the band's lower edge", meaning: "Completeness Planning-grade." },
     { label: "Outside", range: "Under " + b("attrition.band.floor") + "% or over " + b("attrition.band.high") + "%; over " + b("attrition.band.ceiling") + "% is flagged as manager tier", meaning: "Completeness Directional; validate the inputs." },
     { label: "Range on the cost", range: "Estimates ±" + pc(b("attrition.band.estimate")) + ", HR data ±" + pc(b("attrition.band.hrdata")) + ", finance-confirmed ±" + pc(b("attrition.band.finance")), meaning: "Display only." },
@@ -62,7 +62,7 @@ export const ATTRITION_MODEL = {
     "market.wage.agent", "time.hours.year", "load.benefits", "adh.ot.multiplier",
   ].map((id) => ({ id, ...BENCHMARK_SOURCES[id] })),
   example: {
-    note: "Computed by the tool's own engine at its opening case, with avoided hiring as the capacity action (" + pc(H.f) + " of freed capacity). The tool itself opens with no action chosen, which realizes $0.",
+    note: "Computed by the tool itself at its opening case, with avoided hiring as the capacity action (" + pc(H.f) + " of freed capacity). The tool itself opens with no action chosen, which realizes $0.",
     inputs: [["Operation", "200 agents, 35% attrition, full backfill, 25% early washout"], ["Pay", usd(P.salary) + " salary (BLS $" + b("market.wage.agent") + " × 2,080), 30% benefits load"], ["Hiring", "$2,500 recruiting plus 8 screening hours at " + lb("market.wage.hr") + "; 6 weeks training at " + lb("market.wage.trainer") + " a trainer hour, classes of 12; 4 weeks nesting at 50%, 3 months ramp at 75%; 10 supervisor hours at " + lb("market.wage.supervisor") + "; 30 vacancy days, 60% covered by overtime at a 50% premium"]],
     steps: [
       ["Departures", P.departures + " a year, all refilled; loaded hourly " + usd2(P.loadedHourly)],

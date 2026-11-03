@@ -139,5 +139,24 @@ console.log("\n6. Retired unsourced figures stay retired");
   ok("the allowlist is not stale: every entry still matches", ALLOWED.every(([af, frag]) => found.some(([f, l]) => f === af && l.includes(frag))));
 }
 
+
+/* 8. Builder language (TB, 3 Nov 2026: "much of the copy is as if you're speaking to me while we build"). Public copy speaks
+   to the buyer; process words stay in comments and docs. docs/EDITORIAL_STYLE.md holds the vocabulary. The method page and
+   its data may name method versions, because that page is where a sceptic checks them. */
+{
+  const BUILDER = /researched under the current|the current method(?:ology)?\b|competitive class|Phase [12] (?:context|assessment|profiles?|review|edition|model|method|scor\w*|description|vertical)|class-specific ratings|completion gate|integrity freeze/i;
+  ok("the builder rule fires on planted samples", ["researched under the current method", "a competitive class", "Phase 1 context", "Phase 1 scores withdrawn"].every((x) => BUILDER.test(x)) && !BUILDER.test("researched in depth, compared with its peer group"));
+  const EXEMPT = /^(ResearchMethod\.jsx|src\/lib\/research\/methodPage\.js|src\/lib\/methodVersions\.js)$/;
+  const pub = execSync("git ls-files '*.js' '*.jsx' '*.html'", { encoding: "utf8" }).split("\n").filter((f) => f && !/\.(test|report)\.|^scripts\/|^\.github\/|node_modules|^dist/.test(f) && !EXEMPT.test(f));
+  const found = [];
+  for (const f of pub) {
+    let t = readFileSync(f, "utf8").replace(/\/\*[\s\S]*?\*\//g, "").replace(/<!--[\s\S]*?-->/g, "");
+    t = t.split("\n").filter((l) => !/^\s*(\/\/|\*|\{\/\*)/.test(l) && !/new (?:Type|Range)?Error\(/.test(l)).join("\n").replace(/(?<![:"'])\/\/.*/g, ""); // thrown errors never render
+    const m = t.match(new RegExp(".{0,40}(?:" + BUILDER.source + ").{0,30}", "i"));
+    if (m) found.push(`${f}: ${m[0].trim()}`);
+  }
+  ok(`no builder language in ${pub.length} public files outside comments`, found.length === 0, found.slice(0, 6).join(" | "));
+}
+
 console.log(`\n${pass} passed, ${fail} failed`);
 if (fail > 0) process.exit(1);

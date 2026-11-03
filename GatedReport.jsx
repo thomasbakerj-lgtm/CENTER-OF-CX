@@ -127,7 +127,7 @@ function Summary({ report, onOpen }) {
               <a key={href} href={href} onClick={() => track("next_step_click", { from: "ccaas-buyer-guide", to: href.split("/").pop() })} style={{ border: `1px solid ${BORDER}`, borderRadius: 8, padding: "16px 16px", color: NAVY, fontSize: 14, fontWeight: 600, background: WARM }}>{label} →</a>
             ))}
           </div>
-          <p style={{ fontSize: 12, color: MUTED, marginTop: 20 }}>April 2026 edition, published {report.published}. The full guide keeps that assessment's scores and tiers as a dated record. The rest of the site no longer shows them. No vendor paid for, previewed or approved it.</p>
+          <p style={{ fontSize: 12, color: MUTED, marginTop: 20 }}>April 2026 edition, published {report.published}. The full guide keeps that assessment's scores and tiers as a dated record. We have withdrawn them from the rest of the site. No vendor paid for, previewed or approved it.</p>
         </div>
       </div>
     </section>

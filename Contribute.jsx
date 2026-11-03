@@ -48,7 +48,7 @@ export default function Contribute() {
         <header style={{ display: "flex", flexDirection: "column", gap: 10 }}>
           <span style={{ ...K.kicker, color: ACCENT }}>Research · Contributor perspectives</span>
           <h1 style={{ margin: 0, fontSize: "clamp(28px, 4vw, 40px)", fontWeight: 700, lineHeight: 1.12, color: HOUSE.mist }}>Write for The Center of CX</h1>
-          <p style={K.body}>If you run, advise on or study contact centers, you can publish here under your own name. Your piece is reviewed for facts and disclosure, carries your byline and stays yours.</p>
+          <p style={K.body}>If you run, advise on or study contact centers, you can publish here under your own name. We review your piece for facts and disclosure. It carries your byline and stays yours.</p>
           <p style={K.body}><a href="/perspectives" style={{ color: ACCENT, fontWeight: 600 }}>Read published contributor perspectives</a></p>
         </header>
 

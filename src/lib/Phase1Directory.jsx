@@ -22,8 +22,8 @@ export function ScoresWithdrawn({ category }) {
       <div style={WRAP}>
         <div style={{ maxWidth: 760 }}>
           <span style={{ color: ELECTRIC, fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase" }}>Scores withdrawn</span>
-          <h2 style={{ ...SERIF, fontSize: 28, color: NAVY, margin: "8px 0 12px" }}>Why this page no longer ranks vendors.</h2>
-          <p style={{ fontSize: 15, color: SLATE, lineHeight: 1.7, margin: 0 }}>Our earlier assessment of {category} scored every vendor on one scale, so platforms built for different jobs were ranked against each other. We now compare a vendor only with platforms built for the same job, and we publish ratings only when that peer group has enough researched vendors. Until we research {category} that way, its scores, tiers and rankings are withdrawn. Vendors are listed by name, and every profile is marked as an earlier assessment.</p>
+          <h2 style={{ ...SERIF, fontSize: 28, color: NAVY, margin: "8px 0 12px" }}>Why we do not rank these vendors.</h2>
+          <p style={{ fontSize: 15, color: SLATE, lineHeight: 1.7, margin: 0 }}>Our earlier assessment of {category} scored every vendor on one scale, so platforms built for different jobs were ranked against each other. We now compare a vendor only with platforms built for the same job, and we publish ratings only when that peer group has enough researched vendors. Until we research {category} that way, its scores, tiers and rankings are withdrawn. We list vendors by name and mark every profile as an earlier assessment.</p>
         </div>
       </div>
     </section>

@@ -28,7 +28,7 @@ export const SEO_MAP = {
   },
   "/subscribe": {
     title: `Subscribe | ${SITE}`,
-    desc: "CX technology intelligence delivered. Vendor updates, framework releases, and market analysis from The Center of CX.",
+    desc: "About once a week: what changed in contact center technology and operations, what it means for you, and where to test it against your own numbers.",
   },
   "/tools": {
     title: `Contact Center Tools | ${SITE}`,
@@ -390,7 +390,7 @@ export const SEO_MAP = {
   },
   "/research/vendor-method": {
     title: `How We Research Contact Center Vendors | ${SITE}`,
-    desc: "How vendor research is done: what a profile answers, how findings are labelled, which sources count, and how each vendor is challenged and signed off.",
+    desc: "How we research vendors: what a profile answers, how we label findings, which sources count, and how we challenge and sign off each vendor.",
   },
   "/corrections": {
     title: `How Corrections Work | Vendor Research | ${SITE}`,
@@ -992,7 +992,7 @@ export function resolveSeo(rawPath) {
       if (parts[0] === "ccaas" && CCAAS_INDEXED_INDUSTRIES.includes(parts[1])) {
         seo.known = true;
         seo.title = `CCaaS Research: ${vName} Contact Centers | ${SITE}`;
-        seo.desc = `What current CCaaS research says about ${vName}: every finding, product and break that bears on it, dated, with vendors A to Z.`;
+        seo.desc = `What our CCaaS research says about ${vName}: every finding, product and break that bears on it, dated, with vendors A to Z.`;
         return seo;
       }
       seo.known = false;

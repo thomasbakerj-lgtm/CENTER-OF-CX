@@ -657,7 +657,7 @@ console.log("\n14. 11B grading layer and registry");
 
   /* J3. Defect class 2. Rail and self values carry no credential. */
   const railM = G({}, { M: { value: OWN.M, src: "cost-per-contact" } });
-  A("class 2: a rail volume with no origin grades evidence Directional", railM.evidence === "Directional" && railM.origins.M === "rail" && /arrived over the rail with no recorded origin grade/.test(railM.gradeWhy));
+  A("class 2: a rail volume with no origin grades evidence Directional", railM.evidence === "Directional" && railM.origins.M === "rail" && /came from another tool with no recorded origin grade/.test(railM.gradeWhy));
   const railFcr = G({}, { fcr: { value: OWN.fcr, src: "cost-per-contact" } });
   A("class 2: a rail FCR with no origin grades evidence Directional", railFcr.evidence === "Directional" && railFcr.origins.fcr === "rail");
   const railMarg = G({}, { mCPC: { value: OWN.mCPC, src: "cost-per-contact" } });
@@ -666,7 +666,7 @@ console.log("\n14. 11B grading layer and registry");
   A("class 2: a rail Directional origin stays Directional", G({}, { M: { value: OWN.M, src: "x" } }, "Directional").evidence === "Directional");
   for (const f of ["M", "fcr", "mCPC"]) {
     const g = G({}, { [f]: { value: OWN[f], src: TOOL } });
-    A(`class 2: ${f} restored from this tool's own last run grades Directional`, g.evidence === "Directional" && g.origins[f] === "self" && /a tool never credentials itself/.test(g.gradeWhy));
+    A(`class 2: ${f} restored from this tool's own last run grades Directional`, g.evidence === "Directional" && g.origins[f] === "self" && /a tool cannot vouch for its own figures/.test(g.gradeWhy));
   }
   /* The PULLED badge names another tool as the source. A restored own value is not
      pulled, so the badge reads the recorded producer, never mere presence. */

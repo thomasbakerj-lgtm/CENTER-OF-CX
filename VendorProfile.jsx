@@ -91,8 +91,8 @@ function VendorNotFound() {
       <Nav />
       <section style={{ background: HOUSE.navy, padding: "180px 28px 80px", textAlign: "center" }}>
         <div style={WRAP}>
-          <h1 style={{ fontFamily: FONT, fontSize: 36, color: HOUSE.mist, margin: "0 0 16px" }}>Vendor profile coming soon.</h1>
-          <p style={{ fontSize: 16, color: HOUSE.body, maxWidth: 480, margin: "0 auto 32px" }}>We're building out individual vendor assessments across all eight categories. This profile will be available shortly.</p>
+          <h1 style={{ fontFamily: FONT, fontSize: 36, color: HOUSE.mist, margin: "0 0 16px" }}>We have no profile for this vendor yet.</h1>
+          <p style={{ fontSize: 16, color: HOUSE.body, maxWidth: 480, margin: "0 auto 32px" }}>We profile vendors across eight categories. Browse them to find the one you need.</p>
           <a href="/vendors" style={{ display: "inline-block", background: HOUSE.action, color: HOUSE.paper, fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 8 }}>← Back to Vendors</a>
         </div>
       </section>

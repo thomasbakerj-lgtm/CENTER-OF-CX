@@ -376,16 +376,16 @@ function gradeChannel({ d, r, pre, railOrigin }) {
     const parts = [];
     const def = named(list, "default"), self = named(list, "self"), rail = named(list, "rail");
     if (def.length) parts.push(`${say(def)} ${def.length > 1 ? "are" : "is"} still at the tool default`);
-    if (self.length) parts.push(`${say(self)} ${self.length > 1 ? "were" : "was"} restored from this tool's own last run, and a tool never credentials itself, so it counts as unverified`);
+    if (self.length) parts.push(`${say(self)} ${self.length > 1 ? "were" : "was"} restored from this tool's own last run, and a tool cannot vouch for its own figures, so it counts as unverified`);
     if (rail.length) {
       const seen = [...new Set(list.filter(([f]) => origins[f] === "rail").map(([f]) => (pre && pre[f] && pre[f].origin) || railOrigin).map((g) => g || "none"))];
       const noted = seen.length === 1 && seen[0] === "none" ? "with no recorded origin grade" : `with an origin grade of ${say(seen)}`;
-      parts.push(`${say(rail)} arrived over the rail ${noted}. A value from another tool keeps your tools consistent, and its evidence goes only as far as where it came from`);
+      parts.push(`${say(rail)} came from another tool ${noted}. A value from another tool keeps your tools consistent, and its evidence goes only as far as where it came from`);
     }
     return parts;
   };
   const opsParts = why([...OPS_OWN, ...opsAttest]);
-  if (!opsParts.length && !attested) opsParts.push("Eligibility, resolution and displacement are your own entries and are not yet attested from data. Tick the validation box once they come from your reporting");
+  if (!opsParts.length && !attested) opsParts.push("Eligibility, resolution and displacement are your own entries, and nothing confirms them from data yet. Tick the box below once they come from your own data");
   if (!opsParts.length) opsParts.push("Volume, handle time, eligibility, resolution and displacement are your own entries, attested from data. An attestation you make yourself stands at Planning-grade at most");
   const costParts = why(costList);
   if (!costParts.length) costParts.push("The wage and cost basis are your own entries. This tool inspects no documents, so they stand at Planning-grade at most");
@@ -395,7 +395,7 @@ function gradeChannel({ d, r, pre, railOrigin }) {
   const realization = realizationFromCred(r.cred);
   const realWhy = r.mechKey === "none"
     ? "No capacity action is selected, so none of the freed time converts to cash"
-    : `${MECH[r.mechKey].label} is credited as ${r.cred} in mech.js`;
+    : `${MECH[r.mechKey].label} is credited as ${r.cred} under our capacity-action rules`;
 
   const mixSum = n(d.voicePct) + n(d.chatPct) + n(d.emailPct) + n(d.botPct);
   const blockers = [];
@@ -733,7 +733,7 @@ export default function ChannelShiftModel() {
           <ReportActions
             toolId={TOOL_ID}
             toolName="Channel Shift Economics"
-            subtitle={`Voice → digital · ${verdict.label} · ${isVoid(gradeObj) ? "EXPORT VOID, integrity invariant failed" : `${confidence}, bound by ${gradeObj.boundBy}`}`}
+            subtitle={`Voice → digital · ${verdict.label} · ${isVoid(gradeObj) ? "EXPORT VOID, an internal check failed" : `${confidence}, bound by ${gradeObj.boundBy}`}`}
             routePath={ROUTE}
             state={scenario}
             defaults={DEFAULTS}

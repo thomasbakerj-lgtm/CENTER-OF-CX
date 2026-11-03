@@ -9,7 +9,7 @@ export const categoryMeta = {
   executiveTake: "The workforce and quality stack is no longer one clean market. It has split into four real layers: enterprise WEM/WFO suites, CCaaS-embedded modules, best-of-breed WFM specialists, and AI-first QM/Auto-QA overlays. The mistake is treating them as interchangeable. They are not. WFM is still the harder operational control plane; QM is where AI overlays are fragmenting the market fastest.",
   scoringNote: "Do not force WFM, QM, and AI-QA into one flat leaderboard. Vendors are ranked within the layer they actually compete in. That keeps the shortlist honest and prevents a flashy Auto-QA overlay from outranking a true workforce control plane on the wrong criteria.",
   methodology: "Scores use one framework with three weighting modes. The criteria stay consistent, but the weights change based on whether you are buying a WFM backbone, a balanced WEM suite, or a QA modernization layer. Enterprise depth (1 to 5) measures suitability for large, complex, multi-site, multi-skill, compliance-heavy operations. AI-QA maturity (1 to 5) measures credibility of 100% interaction review, auto-scoring, coaching workflows, and operational usability. Scores are analyst judgment based on current official product evidence and market structure; vendors do not score themselves.",
-  consolidationNote: "Playvox is now folded into NICE. Klaus is now Zendesk QA. CommunityWFM is absorbed into RingCentral's WEM motion. These are not counted as standalone leaders, doing so would distort the market map.",
+  consolidationNote: "Playvox is now folded into NICE. Klaus is now Zendesk QA. CommunityWFM is absorbed into RingCentral's WEM motion. We do not count them as standalone leaders, because that would distort the market map.",
 };
 
 export const scoringCriteria = [
@@ -81,7 +81,7 @@ export const marketLayers = {
       { rank: 9, vendor: "RingCentral", slug: "ringcentral-wem", segment: "CCaaS-embedded WEM", entDepth: 4, aiQA: 4, native: "Acquired-native", rec: "Now more credible post-CommunityWFM absorption; still needs more proof at top-end scale", bpo: 3 },
       { rank: 10, vendor: "Zendesk", slug: "zendesk-wem", segment: "Digital-service WEM", entDepth: 3, aiQA: 5, native: "Acquired-native", rec: "Strong for digital support QA + WFM; it does not replace voice-first enterprise WEM", bpo: 2 },
       { rank: 11, vendor: "Content Guru", slug: "contentguru-wem", segment: "CCaaS + WEM", entDepth: 4, aiQA: 3, native: "Mixed", rec: "Real platform, but evaluate carefully where WFM depth depends on partner integration paths", bpo: 4 },
-      { rank: 12, vendor: "8x8", slug: "8x8-wem", segment: "CCaaS-embedded WEM", entDepth: 3, aiQA: 3, native: "Mixed", rec: "Improving, but still not where I'd start for complex enterprise WFM-led transformation", bpo: 3 },
+      { rank: 12, vendor: "8x8", slug: "8x8-wem", segment: "CCaaS-embedded WEM", entDepth: 3, aiQA: 3, native: "Mixed", rec: "Improving, but still a weak starting point for complex enterprise WFM-led transformation", bpo: 3 },
     ],
   },
   wfmSpecialists: {

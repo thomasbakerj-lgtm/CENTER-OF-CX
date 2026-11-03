@@ -71,7 +71,7 @@ export default function TelecomVertical() {
       bpo={{ title: "How outsourcing fits in telecom CX.", value: ["Tier 1 billing inquiries and plan change requests: high volume, scriptable","Device activation and basic setup support","Outbound collections and payment arrangement calls","After-hours coverage for service disruption reporting","Seasonal scaling for product launches and promotional campaigns"], risk: bpoRisks }}
       vendors={{ items: [{ name: "Genesys", href: "/vendors/genesys" }, { name: "NICE CXone", href: "/vendors/nice-cxone" }, { name: "Cisco", href: "/vendors/cisco" }, { name: "Avaya", href: "/vendors" }, { name: "Five9", href: "/vendors/five9" }, { name: "Amazon Connect", href: "/vendors/amazon-connect" }] }}
       sources={{ ids: claimIds([stats, benchmarks, failureModes, bpoRisks]), note: "Every figure on this page is a published figure checked on the publisher's own page, a labelled planning assumption you can test with your own numbers, or marked as having no public benchmark." }}
-      cta={{ title: "Evaluating CX technology for telecom?", text: "BSS/OSS integration, churn prediction, and retention routing change which platforms are viable. We can help you build a shortlist weighted for your sub-vertical: wireless carrier, broadband, enterprise, or managed services.",
+      cta={{ title: "Evaluating CX technology for telecom?", text: "BSS/OSS integration, churn prediction, and retention routing change which platforms are viable. We can help you build a shortlist weighted for your segment: wireless carrier, broadband, enterprise, or managed services.",
         links: [["/contact", "Request a Telecom CX Briefing"], ["/tools/cx-maturity", "Take the CX Maturity Assessment"]] }}
     />
   );

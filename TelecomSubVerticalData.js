@@ -73,7 +73,7 @@ export const telecomSubVerticals = {
           { name: "Salesforce Communications Cloud", role: "Industry CRM", why: "Telecom-specific data model with subscriber, account, service, and order objects. The CRM layer that unifies BSS/OSS data into an agent-friendly view.", href: "/vendors/ccaas" },
           { name: "Netcracker (NEC)", role: "BSS/OSS", why: "Full-stack BSS/OSS for carriers. Revenue management, partner management, and service fulfillment. Alternative to Amdocs for carriers evaluating modernization.", href: "/vendors" },
         ],
-        pitfall: "The telecom agent desktop problem is severe. A wireless carrier agent may need: Amdocs for billing, a CRM for interaction history, a network tool for coverage/outage, a device management system for IMEI/warranty, and an order system for provisioning status, five systems, five logins, five interfaces. Often the investment that matters most is a unified agent desktop that abstracts the BSS/OSS complexity into a single view, ahead of a new CCaaS platform. Salesforce Communications Cloud attempts this but requires deep integration work."
+        pitfall: "The telecom agent desktop problem is severe. A wireless carrier agent may need: Amdocs for billing, a CRM for interaction history, a network tool for coverage/outage, a device management system for IMEI/warranty, and an order system for provisioning status. That is five systems, five logins, five interfaces. Often the investment that matters most is a unified agent desktop that abstracts the BSS/OSS complexity into a single view, ahead of a new CCaaS platform. Salesforce Communications Cloud attempts this but requires deep integration work."
       },
     ],
   },
@@ -81,7 +81,7 @@ export const telecomSubVerticals = {
   "broadband-isp": {
     name: "Broadband / ISP", parent: "Telecommunications",
     tagline: "Service activation, speed complaints, outage management, billing, and technical troubleshooting.",
-    intro: "ISP contact centers handle customers who view internet service as a utility: they expect it to work, and they call only when it doesn't. Every inbound call represents a failure: a failure of the network, the billing system, the self-service tools, or the installation process. The CX challenge is resolving technical issues remotely while managing the frustration of customers who feel they're paying for a service that isn't delivered.",
+    intro: "Internet service provider (ISP) contact centers handle customers who view internet service as a utility: they expect it to work, and they call only when it doesn't. Every inbound call represents a failure: a failure of the network, the billing system, the self-service tools, or the installation process. The CX challenge is resolving technical issues remotely while managing the frustration of customers who feel they're paying for a service that isn't delivered.",
     kpis: [
       { metric: "AHT", avg: "[[tel.sv.broadband-isp.aht]]", note: "Driven by guided technical troubleshooting and escalation" },
       { metric: "FCR", avg: "[[tel.sv.broadband-isp.fcr]]", note: "Speed issues and outages often need dispatch or a network-side fix" },
@@ -165,7 +165,7 @@ export const telecomSubVerticals = {
   "enterprise-comms": {
     name: "Enterprise & Business Communications", parent: "Telecommunications",
     tagline: "UCaaS/SD-WAN support, SLA management, provisioning, and account management.",
-    intro: "Enterprise telecom contact centers serve business customers whose communications infrastructure is mission-critical. A short voice outage can cost an enterprise customer far more than its monthly bill. The CX challenge is providing B2B-grade support, named account managers, SLA-aware routing, proactive monitoring, while managing a complex portfolio of voice, data, cloud, and managed services.",
+    intro: "Enterprise telecom contact centers serve business customers whose communications infrastructure is mission-critical. A short voice outage can cost an enterprise customer far more than its monthly bill. The CX challenge is providing B2B-grade support (named account managers, SLA-aware routing, proactive monitoring) while managing a complex portfolio of voice, data, cloud, and managed services.",
     kpis: [
       { metric: "AHT", avg: "[[tel.sv.enterprise-comms.aht]]", note: "Driven by provisioning, SLA discussions, and multi-circuit troubleshooting" },
       { metric: "FCR", avg: "[[tel.sv.enterprise-comms.fcr]]", note: "Enterprise issues often span several circuits, sites, and vendors" },
@@ -186,7 +186,7 @@ export const telecomSubVerticals = {
         pitfall: "Enterprise customers should never learn about a service-affecting issue from their own end users. Proactive notification must be faster than the customer's internal detection. [[tel.ex.noc]] Set a target for automated alerting from NOC → customer, such as [[tel.ent.alert]] from detection."
       },
       { layer: 4, name: "Reasoning & Planning", capabilities: ["Circuit status bots with real-time performance data","Order and provisioning status bots with milestone tracking","Billing inquiry bots for enterprise invoicing and usage","Basic troubleshooting bots for SIP, internet, and SD-WAN connectivity","Knowledge base search for enterprise product documentation"], vendors: "Limited use: enterprise expects human expertise", risk: "Bot handling mission-critical outage report instead of immediately escalating",
-        stack: [{ name: "Minimal AI recommended", role: "None", why: "Enterprise customers paying for mission-critical services expect an immediate human response to incidents. Deploy AI for order status, invoice lookup, and documentation search, never for incident management. A bot saying 'let me help you troubleshoot' during a major outage does lasting damage to the account relationship." }],
+        stack: [{ name: "Minimal AI recommended", role: "None", why: "Enterprise customers paying for mission-critical services expect an immediate human response to incidents. Deploy AI for order status, invoice lookup, and documentation search. Keep it away from incident management. A bot saying 'let me help you troubleshoot' during a major outage does lasting damage to the account relationship." }],
         pitfall: "Enterprise AI should be invisible to the customer and visible to the agent. Use Agent Assist (Google CCAI, NICE) to surface circuit history, SLA data, and recommended troubleshooting steps to the agent in real-time, but keep the customer-facing interaction human. Enterprise customers buy expertise; automation does not replace it."
       },
       { layer: 3, name: "Policy & Guardrails", capabilities: ["SLA compliance enforcement with automated credit calculation","CPNI protection for enterprise customer data and traffic patterns","SOC 2 compliance for managed service delivery","Contract terms enforcement for service levels and penalties","Change management policies with customer approval workflows"], vendors: "ServiceNow, custom compliance", risk: "SLA credits not issued proactively: customer must demand them",
@@ -207,7 +207,7 @@ export const telecomSubVerticals = {
   "managed-services": {
     name: "Managed Service Providers", parent: "Telecommunications",
     tagline: "NOC support, incident management, SLA reporting, change requests, and multi-vendor coordination.",
-    intro: "MSP contact centers operate as extensions of their clients' IT departments. The CX challenge is technical depth, when a client calls about a network issue, the MSP agent must diagnose across multiple vendors, circuits, and technologies. Generic customer service skills are insufficient; MSP support is engineering support with SLA accountability.",
+    intro: "Managed service provider (MSP) contact centers operate as extensions of their clients' IT departments. The CX challenge is technical depth: when a client calls about a network issue, the MSP agent must diagnose across multiple vendors, circuits, and technologies. Generic customer service skills are insufficient; MSP support is engineering support with SLA accountability.",
     kpis: [
       { metric: "AHT", avg: "[[tel.sv.managed-services.aht]]", note: "Driven by multi-vendor diagnosis and coordination" },
       { metric: "FCR", avg: "[[tel.sv.managed-services.fcr]]", note: "Issues span several vendors and need coordinated resolution" },

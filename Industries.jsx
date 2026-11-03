@@ -84,7 +84,7 @@ export default function Industries() {
         <section aria-labelledby="vendors-by" style={{ ...K.panel, display: "flex", flexDirection: "column", gap: 12 }}>
           <span style={K.kicker}>Vendors by vertical</span>
           <h2 id="vendors-by" style={{ ...K.h2, fontSize: 22, lineHeight: "30px", margin: 0 }}>Contact center platforms by industry.</h2>
-          <p style={K.body}>For healthcare, government and financial services, the research on {CCAAS_COMPLETE_COUNT} platforms gathered for the industry. For every industry, the platforms named with their tags and an introduction. Vendor scores are withdrawn; nothing here ranks a vendor.</p>
+          <p style={K.body}>For healthcare, government and financial services, we gather what our research on {CCAAS_COMPLETE_COUNT} platforms says about that industry. For every industry, we name the platforms, with their tags and an introduction. We have withdrawn vendor scores, and nothing here ranks a vendor.</p>
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
             {industries.map((ind) => {
               const slug = ind.href.replace("/industries/", "");

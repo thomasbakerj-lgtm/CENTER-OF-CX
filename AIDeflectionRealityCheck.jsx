@@ -97,8 +97,8 @@ const DEFS = {
   mech: { title: "Capacity action", text: "Freed agent handle time is capacity. It becomes cash only when you act on it: less overtime, fewer hires, less outsourced volume or fewer seats. With no action selected it realizes $0, and many vendor business cases leave that step out. Operating cost and the escalation premium are cash out either way, so with no action the result shows a loss." },
   evidence: { title: "Evidence source", text: "What backs the resolution rate you entered. Marketing claims and internal estimates stay at Directional. A proposal is a written document, though the vendor is not bound by it, and it reaches Planning-grade. A contracted floor with a remedy, or resolution you have observed in your own operation, also reaches Planning-grade. None reaches Finance-grade: this tool inspects no document, so every source here is your own account." },
   implOneTime: { title: "One-time implementation cost", text: "Integration, content build, professional services, and the internal hours to stand the bot up. It hits Year 1 and never repeats, so it changes payback without touching steady-state economics. Leaving it at zero does not make it zero. It makes your Year 1 number optimistic by exactly the amount the vendor is charging." },
-  confidence: { title: "Confidence, three axes", text: "Evidence asks what backs the resolution rate and the cost basis. Realization asks whether finance can book the savings, given your capacity action. Completeness asks whether the model is whole: any corrected, impossible or implausible input, a result the rail refuses, or a model that measures nothing holds it at Directional. The headline reports the weakest of the three. The grade describes what you have told this tool. Nobody here has seen your quote, your payroll file or your pilot data, so self-declared evidence stops at Planning-grade. Finance-grade needs independent validation, which this tool cannot perform." },
-  rail: { title: "Rail handoff", text: "This tool is the one source of the realistic deflection rate the other tools on the site use. It publishes two numbers, net automation of total demand and durable resolution of the traffic routed to the bot, because the tools that read them need different denominators. When it publishes nothing, this panel says so." },
+  confidence: { title: "Confidence, three axes", text: "Evidence asks what backs the resolution rate and the cost basis. Realization asks whether finance can book the savings, given your capacity action. Completeness asks whether the model is whole: any corrected, impossible or implausible input, a result too broken to share with your other tools, or a model that measures nothing holds it at Directional. The headline reports the weakest of the three. The grade describes what you have told this tool. Nobody here has seen your quote, your payroll file or your pilot data, so self-declared evidence stops at Planning-grade. Finance-grade needs independent validation, which this tool cannot perform." },
+  rail: { title: "Shared with your other tools", text: "This tool is the one source of the realistic deflection rate the other tools on the site use. It publishes two numbers, net automation of total demand and durable resolution of the traffic routed to the bot, because the tools that read them need different denominators. When it publishes nothing, this panel says so." },
   durable: { title: "Durable resolution, and its limits", text: "A durable resolution is an interaction that reached the outcome the customer wanted without an avoidable handoff to a human, a repeat contact on the same issue, a switch to another channel, or a later correction, inside the measurement window you choose. Two caveats. A repeat contact can be a new, unrelated issue. And a customer who never comes back may simply have given up. Unless you supply observed repeat data matched by contact reason, the durable figure here is an estimate of your leakage, and it should be read as one." },
   funnel: { title: "The three rates", text: "Coverage is how much demand a bot could handle, out of total demand. Resolution is how much of the bot's own traffic it handles, out of AI-involved conversations. Net automation is how much of your total volume goes away for good, out of total demand. Each answers a different question, and most overstatement in AI business cases sits in the gap between apparent resolution and net automation." },
   verdict: { title: "The decision", text: "This tool supports one expensive decision: approving an automation business case, or committing to a resolution target. The verdict has four main states. Proceed when the economics are positive and backed by evidence, the program pays back inside the year, and the Conservative scenario still breaks even. Pilot when they are positive but unproven or thin. Fix the foundation first when eligibility is what holds you back. Buy nothing when even the upside case is a net cost." },
@@ -264,7 +264,7 @@ export function engine(I) {
   const railRate = netAutomationRate / 100, railBot = botResolutionRate / 100;
   let railPublished = true, railReason = null;
   if (M <= 0) { railPublished = false; railReason = "Monthly contacts is zero, so there is no volume to express a rate against."; }
-  else if (!(railRate >= 0 && railRate <= 1)) { railPublished = false; railReason = `Net automation resolved to ${netAutomationRate.toFixed(2)}%, outside 0 to 100%, and the rail refuses it.`; }
+  else if (!(railRate >= 0 && railRate <= 1)) { railPublished = false; railReason = `Net automation resolved to ${netAutomationRate.toFixed(2)}%, outside 0 to 100%, so we do not share it with your other tools.`; }
 
   const ev = EVIDENCE[evKey];
   const cr = CRED_RANK[MECH[mechKey].cred];
@@ -444,11 +444,11 @@ function gradeAID({ I, r, pre, railOrigin }) {
     const parts = [];
     const def = named(list, "default"), self = named(list, "self"), rail = named(list, "rail");
     if (def.length) parts.push(`${say(def)} ${def.length > 1 ? "are" : "is"} still at the tool default`);
-    if (self.length) parts.push(`${say(self)} ${self.length > 1 ? "were" : "was"} restored from this tool's own last run, and a tool never credentials itself`);
+    if (self.length) parts.push(`${say(self)} ${self.length > 1 ? "were" : "was"} restored from this tool's own last run, and a tool cannot vouch for its own figures`);
     if (rail.length) {
       const seen = [...new Set(list.filter(([f]) => origins[f] === "rail").map(([f]) => (pre && pre[f] && pre[f].origin) || railOrigin).map((g) => g || "none"))];
       const noted = seen.length === 1 && seen[0] === "none" ? "with no recorded origin grade" : `with an origin grade of ${say(seen)}`;
-      parts.push(`${say(rail)} arrived over the rail ${noted}, which confers consistency and evidence only as far as its origin`);
+      parts.push(`${say(rail)} came from another tool ${noted}. A value from another tool keeps your tools consistent, and its evidence goes only as far as where it came from`);
     }
     return parts;
   };
@@ -464,19 +464,19 @@ function gradeAID({ I, r, pre, railOrigin }) {
   const realization = realizationFromCred(MECH[r.mechKey].cred);
   const realWhy = r.mechKey === "none"
     ? "No capacity action is selected, so no freed capacity converts to cash"
-    : `${MECH[r.mechKey].label} is credited as ${MECH[r.mechKey].cred} in mech.js`;
+    : `${MECH[r.mechKey].label} is credited as ${MECH[r.mechKey].cred} under our capacity-action rules`;
 
   const blockers = [];
   if (r.guards.length) blockers.push(`${r.guards.length} input${r.guards.length > 1 ? "s were" : " was"} outside the possible range or not a number and corrected before calculation`);
   if (!r.margWasDefaulted && r.cpc > 0 && r.marg > r.cpc) blockers.push("marginal cost exceeds loaded cost, which is impossible");
   else if (!r.margWasDefaulted && r.cpc > 0 && r.marg >= MARG_NEAR * r.cpc) blockers.push(`marginal cost is at least ${Math.round(MARG_NEAR * 100)} percent of loaded cost, which usually means loaded cost was entered twice`);
-  if (!r.railPublished) blockers.push(`the rail refused the result: ${r.railReason.charAt(0).toLowerCase() + r.railReason.slice(1, -1)}`);
+  if (!r.railPublished) blockers.push(`the result was not shared with your other tools: ${r.railReason.charAt(0).toLowerCase() + r.railReason.slice(1, -1)}`);
   else if (!(r.attempted > 0)) blockers.push("no demand is routed to the bot, so the model measured nothing");
   if (r.attempted > 0 && r.opexMonthly / r.attempted <= BOT_NEAR_FREE) blockers.push("the bot carries volume at a near-free operating cost");
   if (r.rp >= 100 && r.rhop <= 0) blockers.push("apparent resolution is 100 percent with no repeats, a rate no production bot sustains");
   const completeness = blockers.length ? "Directional" : "Finance-grade";
   const modelWhy = blockers.length ? blockers.join("; ")
-    : "The model is whole: no input was corrected, marginal cost sits plausibly below loaded, the rail accepted the result and the bot carries volume at a real cost";
+    : "The model is whole: no input was corrected, marginal cost sits plausibly below loaded, the result was shared with your other tools and the bot carries volume at a real cost";
 
   const voided = invariants.length > 0;
   const gradeObj = voided
@@ -708,7 +708,7 @@ export default function AIDeflectionRealityCheck() {
       ["Why", G.gradeWhy],
       ["Sensitivity band", "+/- " + Math.round(R.band * 100) + "% on net savings, " + fmtK(sensLow) + " to " + fmtK(sensHigh) + " per month"],
       ["Open issues", R.flags.length === 0 ? "none" : R.flags.length + (R.flags.length === 1 ? " issue, listed below" : " issues, listed below")],
-      ["Cross-tool consistency", consistent ? "Volume and both cost figures arrived from other tools this session. That keeps the tools consistent with each other. It adds no evidence." : "Inputs were entered here or left at their defaults."],
+      ["Cross-tool consistency", consistent ? "Volume and both cost figures came from other tools you ran on this visit. That keeps the tools consistent with each other. It adds no evidence." : "Inputs were entered here or left at their defaults."],
       ["What this grade rests on", "Your own account. It reflects the sources you named. No document, payroll file or pilot dataset was reviewed in producing this report."],
       ["Method", methodStamp(TOOL_ID).text + ", contactcentercx.com/methodology/" + TOOL_ID],
     ]},
@@ -721,7 +721,7 @@ export default function AIDeflectionRealityCheck() {
     ] : [
       ["realisticDeflectionRate", "NOT PUBLISHED"],
       ["botResolutionRate", "NOT PUBLISHED"],
-      ["Reason", R.railReason || "The value did not satisfy the rail's unit contract."],
+      ["Reason", R.railReason || "The value was outside the range the other tools accept."],
       ["Consequence", "Channel Shift Economics will fall back to its own default and will not warn you. This report is where the gap is recorded."],
     ]},
     { title: "Break-Even Thresholds", type: "table", rows: [
@@ -881,8 +881,8 @@ export default function AIDeflectionRealityCheck() {
         <p style={small}>This grade is self-declared. It reflects what you have told this tool about your sources. No document, payroll file or pilot dataset has been reviewed here. Independent validation of the inputs is a separate step.</p>
       </section>
 
-      <section aria-label="Rail handoff" style={{ ...cardStyle, marginBottom: 0 }}>
-        <span style={{ ...kicker, display: "flex", alignItems: "center", gap: 6 }}>Rail handoff<InfoDot text={DEFS.rail.text} title={DEFS.rail.title} /></span>
+      <section aria-label="Shared with your other tools" style={{ ...cardStyle, marginBottom: 0 }}>
+        <span style={{ ...kicker, display: "flex", alignItems: "center", gap: 6 }}>Shared with your other tools<InfoDot text={DEFS.rail.text} title={DEFS.rail.title} /></span>
         {R.railPublished ? (
           <>
             <p style={{ ...body, margin: "8px 0 12px" }}>This is the one tool on the site that produces a realistic deflection rate. Two figures are now available to the other tools, and each has its own denominator.</p>
@@ -899,7 +899,7 @@ export default function AIDeflectionRealityCheck() {
           </>
         ) : (
           <div style={{ marginTop: 10 }}>
-            <Finding level="high" title="Nothing was published to the rest of the suite">{R.railReason} Channel Shift Economics will fall back to its own default bot resolution rate. That is the intended behavior, since a rate the rail cannot trust should not travel. Channel Shift gives no warning when it happens, so this panel is the one place you will see it.</Finding>
+            <Finding level="high" title="Nothing was shared with your other tools">{R.railReason} Channel Shift Economics will fall back to its own default bot resolution rate. That is the intended behavior, since a rate we cannot trust should not travel. Channel Shift gives no warning when it happens, so this panel is the one place you will see it.</Finding>
           </div>
         )}
       </section>
@@ -963,7 +963,7 @@ export default function AIDeflectionRealityCheck() {
           ))}
         </div>
         <div style={{ marginTop: 14, display: "flex", gap: 8, flexWrap: "wrap" }}>
-          <Button kind="secondary" href="/vendors/iva">IVA vendor profiles</Button>
+          <Button kind="secondary" href="/vendors/iva">Virtual agent (IVA) vendor profiles</Button>
           <Button kind="secondary" href="/tools/channel-shift">Channel Shift Economics</Button>
           <Button kind="secondary" href="/tools/cost-per-contact">Cost per Contact</Button>
         </div>

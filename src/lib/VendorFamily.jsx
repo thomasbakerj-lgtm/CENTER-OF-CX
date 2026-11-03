@@ -23,7 +23,7 @@ import { getDEVendor } from "../../DigitalEngagementData.js";
 import { getPaymentVendor } from "../../PaymentData.js";
 
 const ACCENT = PILLARS.vendors.onDark;
-const P1 = "Phase 1 assessment";
+const P1 = "earlier assessment";
 
 /* The words each category's profile carried, as [label, value]; lists become one line each. No numbers. */
 const list = (a) => (Array.isArray(a) ? a.filter(Boolean) : []);

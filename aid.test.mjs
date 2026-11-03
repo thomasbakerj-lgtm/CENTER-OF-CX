@@ -666,13 +666,13 @@ console.log("\n18. 11B grading layer and registry");
 
   /* Defect class 2. Rail and self values carry no credential. */
   const railM = G({}, { M: { value: OWN_ALL.M, src: "staffing-calculator" } });
-  A("class 2: a rail volume with no origin grades evidence Directional", railM.evidence === "Directional" && railM.origins.M === "rail" && /arrived over the rail with no recorded origin grade/.test(railM.gradeWhy));
+  A("class 2: a rail volume with no origin grades evidence Directional", railM.evidence === "Directional" && railM.origins.M === "rail" && /came from another tool with no recorded origin grade/.test(railM.gradeWhy));
   const railMarg = G({}, { marg: { value: 4.2, src: "cost-per-contact" } });
   A("class 2: a rail marginal cost with no origin grades cost evidence Directional even when attested", railMarg.costGrade === "Directional" && railMarg.origins.marg === "rail");
   A("class 2: a rail value's origin grade caps at Planning-grade", G({}, { M: { value: OWN_ALL.M, src: "x" } }, "Finance-grade").evidence === "Planning-grade");
   A("class 2: a rail Directional origin stays Directional", G({}, { M: { value: OWN_ALL.M, src: "x" } }, "Directional").evidence === "Directional");
   const self = G({}, { M: { value: OWN_ALL.M, src: TOOL } });
-  A("class 2: a value restored from this tool's own last run grades Directional", self.evidence === "Directional" && self.origins.M === "self" && /a tool never credentials itself/.test(self.gradeWhy));
+  A("class 2: a value restored from this tool's own last run grades Directional", self.evidence === "Directional" && self.origins.M === "self" && /a tool cannot vouch for its own figures/.test(self.gradeWhy));
   A("class 2: a prefilled value the user changed is the user's own", G({}, { M: { value: 1234, src: "x" } }).origins.M === "entered");
   A("class 2: a defaulted marginal cost grades Directional whatever the checkbox says", G({ marg: 0 }).costGrade === "Directional" && G({ marg: 0 }).origins.marg === "default");
   A("class 2: an unattested marginal cost grades Directional", G({ costBasisOwned: false }).costGrade === "Directional" && /Tick the cost basis box/.test(G({ costBasisOwned: false }).gradeWhy));
@@ -704,7 +704,7 @@ console.log("\n18. 11B grading layer and registry");
     A(`class 3: ${nm} holds completeness Directional`, g.completeness === "Directional" && g.headlineConf === "Directional" && g.blockers.length > 0 && !g.voided);
     A(`class 3: ${nm} is named in the completeness rationale`, g.gradeObj.reasons.completeness.length > 20 && g.gradeObj.boundAxes.includes("completeness"));
   }
-  A("class 3: the rail refusal travels into the completeness rationale", /the rail refused the result: monthly contacts is zero/i.test(G({ M: 0 }).gradeObj.reasons.completeness));
+  A("class 3: the rail refusal travels into the completeness rationale", /the result was not shared with your other tools: monthly contacts is zero/i.test(G({ M: 0 }).gradeObj.reasons.completeness));
   A("class 3: a real program at scale is not near-free", G({ M: 300000, eligibleRate: 71, botPlatformCost: 7500, qaCost: 1700, tuningHours: 80, tuningRate: 55, knowledgeMaintHours: 17, knowledgeRate: 75 }).completeness === "Finance-grade");
   A("class 3: 99 percent resolution with no repeats is not blocked", G({ apparentResolutionRate: 99, repeatLeakRate: 0 }).completeness === "Finance-grade");
   A("class 3: the grading layer never reads the display regex", !/hardFlag/.test(region.slice(region.indexOf("function gradeAID"), region.indexOf("/* @engine-end */"))));

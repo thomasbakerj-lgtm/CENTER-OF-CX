@@ -92,7 +92,7 @@ export const hcSubVerticals = {
     intro: "Payer contact centers handle long, many-step journeys. A single member call about a denied claim can involve benefits interpretation, provider network rules, clinical criteria, appeals rights, and financial obligations, all governed by state and federal regulations that change annually.",
     measures: {
       title: "Medicare plan call centers, measured by CMS test calls",
-      note: "National averages across Medicare Advantage contracts, every contract weighted equally. CMS callers time the hold after the phone menu, count dropped calls, and test interpreter and TTY access on the prospective member line. These are not handle time or resolution.",
+      note: "National averages across Medicare Advantage contracts, every contract weighted equally. CMS callers time the hold after the phone menu, count dropped calls, and test interpreter and TTY access on the prospective member line. They do not measure handle time or resolution.",
       items: [
         { metric: "Hold before a live person", value: "[[hc.cms.hold]]" },
         { metric: "Calls dropped by the plan", value: "[[hc.cms.disconnect]]" },

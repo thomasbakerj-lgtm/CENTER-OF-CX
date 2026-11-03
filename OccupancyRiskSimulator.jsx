@@ -40,7 +40,7 @@ const pct = (x, d = 1) => (x * 100).toFixed(d) + "%";
 const k = (x) => "$" + Math.round(x / 1000).toLocaleString("en-US") + "K";
 const B = OCC_PARAMS.bands;
 const BAND_TEXT = {
-  healthy: `At or below ${pct(B.healthyMax, 0)}, the platform's healthy band. Agents still get a short breather between contacts. Hold here and watch it through your peaks.`,
+  healthy: `At or below ${pct(B.healthyMax, 0)}, our healthy band. Agents still get a short breather between contacts. Hold here and watch it through your peaks.`,
   caution: `Above ${pct(B.healthyMax, 0)} and up to ${pct(B.cautionMax, 0)}, the caution band. Fine for a busy hour or a seasonal peak. Run it every day and this model raises attrition ${OCC_PARAMS.mult.caution}x, so plan staffing back toward your target.`,
   critical: `Above ${pct(B.cautionMax, 0)}, the critical band. Agents go straight from one contact to the next with almost no recovery time, and this model raises attrition ${OCC_PARAMS.mult.critical}x. Add staff or cut workload before anything else.`,
 };
@@ -166,7 +166,7 @@ export default function OccupancyRiskSimulator() {
       <Assumptions items={[
         ...heuristics.map((e) => `${e.value.toLocaleString("en-US")} ${e.unit}: ${e.rationale} Heuristic, no published source.`),
         `Paid hours: ${OCC_PARAMS.hoursWeek} a week and ${OCC_PARAMS.hoursYear.toLocaleString("en-US")} a year, the full-time definition.`,
-        `Benefits load ${OCC_PARAMS.load}x: ${BENCHMARK_SOURCES["load.benefits"].rationale} Bands: healthy to ${pct(B.healthyMax, 0)}, caution to ${pct(B.cautionMax, 0)}, the platform's shared occupancy bands.`,
+        `Benefits load ${OCC_PARAMS.load}x: ${BENCHMARK_SOURCES["load.benefits"].rationale} Bands: healthy to ${pct(B.healthyMax, 0)}, caution to ${pct(B.cautionMax, 0)}, the occupancy bands all our tools use.`,
       ]} />
 
       {/* Audit 30 Sep (TB: side by side and why): Staffing counts and prices the same target differently. Display only. */}
@@ -206,8 +206,8 @@ export default function OccupancyRiskSimulator() {
               ...(guards.length ? [{ title: "Inputs Corrected", type: "findings", items: guards.map(guardLine) }] : []),
               { title: "Key Findings", type: "findings", items: findings },
               { title: "Occupancy Ladder", type: "table", rows: R.ladder.map((l) => [l.occ + "% (" + BAND[l.band].label + ")", l.agents + " agents, " + l.attrition.toFixed(0) + "% attrition, " + k(l.turnoverCost) + "/yr turnover"]) },
-              { title: "Planning Assumptions", type: "findings", items: heuristics.map((e) => e.value + " " + e.unit + ": heuristic, no published source.").concat(["Paid hours " + OCC_PARAMS.hoursWeek + " a week and " + OCC_PARAMS.hoursYear.toLocaleString("en-US") + " a year: the full-time definition.", "Benefits load " + OCC_PARAMS.load + "x, the platform's shared heuristic.", "Hourly rate " + (wageAtBenchmark ? `is the BLS median for customer service representatives, ${BLS_WAGE_VINTAGE}.` : "entered by you.")]) },
-              { title: "Method", type: "text", content: "Occupancy is offered load in Erlangs (calls per hour times AHT, average handle time, in hours) divided by agents. Bands are the platform's shared occupancy bands. Attrition multipliers are labelled planning heuristics. Published at contactcentercx.com" + METHOD + "." },
+              { title: "Planning Assumptions", type: "findings", items: heuristics.map((e) => e.value + " " + e.unit + ": heuristic, no published source.").concat(["Paid hours " + OCC_PARAMS.hoursWeek + " a week and " + OCC_PARAMS.hoursYear.toLocaleString("en-US") + " a year: the full-time definition.", "Benefits load " + OCC_PARAMS.load + "x, the planning heuristic all our tools use.", "Hourly rate " + (wageAtBenchmark ? `is the BLS median for customer service representatives, ${BLS_WAGE_VINTAGE}.` : "entered by you.")]) },
+              { title: "Method", type: "text", content: "Occupancy is offered load in Erlangs (calls per hour times AHT, average handle time, in hours) divided by agents. Bands are the occupancy bands all our tools use. Attrition multipliers are labelled planning heuristics. Published at contactcentercx.com" + METHOD + "." },
             ]}
           />
       </Paper>

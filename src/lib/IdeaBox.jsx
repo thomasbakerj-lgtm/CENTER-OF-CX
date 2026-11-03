@@ -39,7 +39,7 @@ export function IdeaBox({ where, title = "What should we build or study next?", 
       <h2 id={`${uid}-h`} style={{ margin: 0, fontSize: 20, lineHeight: "28px", fontWeight: 600, color: HOUSE.mist }}>{title}</h2>
       {prompt && <p style={{ margin: 0, fontSize: 15, lineHeight: "24px", color: HOUSE.body }}>{prompt}</p>}
       {state === "sent"
-        ? <p role="status" style={{ margin: 0, fontSize: 15, lineHeight: "24px", color: HOUSE.body }}><strong style={{ color: HOUSE.mist }}>Thank you.</strong> Every idea is read. If you left an email, we may write back with a question.</p>
+        ? <p role="status" style={{ margin: 0, fontSize: 15, lineHeight: "24px", color: HOUSE.body }}><strong style={{ color: HOUSE.mist }}>Thank you.</strong> We read every idea. If you left an email, we may write back with a question.</p>
         : (
           <form onSubmit={submit} noValidate style={{ display: "flex", flexDirection: "column", gap: 12 }}>
             <input type="hidden" name="_subject" value={`Idea for The Center of CX: ${where}`} />

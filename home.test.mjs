@@ -39,7 +39,7 @@ section("1. Counts come from their registries");
 {
   const d = Object.fromEntries(H.DOORS.map((x) => [x.pillar, x]));
   ok("diagnostics: tools and published methods", d.diagnostics.meta === `${SEO.TOOL_COUNT} tools. ${Object.keys(MV.METHOD_VERSIONS).length} published methods.`, d.diagnostics.meta);
-  ok("vendors: profiles and CCaaS researched in full", d.vendors.meta === `${SEO.VENDOR_PROFILE_COUNT} profiles. ${RS.CCAAS_COMPLETE_COUNT} CCaaS researched in full.`, d.vendors.meta);
+  ok("vendors: profiles and contact center platforms researched in depth", d.vendors.meta === `${SEO.VENDOR_PROFILE_COUNT} profiles. ${RS.CCAAS_COMPLETE_COUNT} contact center platforms researched in depth.`, d.vendors.meta);
   ok("industries: industries and segments", d.industries.meta === `${Object.keys(V.VERTICALS).length} industries. ${SEO.SEGMENT_COUNT} segments.` && SEO.SEGMENT_COUNT > 50, d.industries.meta);
   const sitemapSegments = (readFileSync("./public/sitemap.xml", "utf8").match(/\/industries\/[a-z0-9-]+\/[a-z0-9-]+</g) || []).length;
   ok("the segment count equals the segment pages in the sitemap", SEO.SEGMENT_COUNT === sitemapSegments, `${SEO.SEGMENT_COUNT} vs ${sitemapSegments}`);

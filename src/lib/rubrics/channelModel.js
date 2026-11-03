@@ -57,7 +57,7 @@ export const CHANNEL_MODEL = {
     "market.wage.agent", "load.benefits", "load.marginal",
   ].map((id) => ({ id, ...BENCHMARK_SOURCES[id] })),
   example: {
-    note: "Computed by the tool's own engine at its opening profile, with avoided hiring as the capacity action (" + pc(H.f, 0) + " of freed capacity). The tool itself opens with no action chosen, which realizes $0.",
+    note: "Computed by the tool itself at its opening profile, with avoided hiring as the capacity action (" + pc(H.f, 0) + " of freed capacity). The tool itself opens with no action chosen, which realizes $0.",
     inputs: [["Volume", "100,000 contacts a month, voice 70% at 7 minutes, 60% of voice eligible"], ["Shift", "10 points to chat (85% resolve, 80% displace, 10 minutes at 2.5 concurrent) and 10 points to bot (65% resolve, 70% displace, $0.50 a contact)"], ["Cost", "$" + benchmark("market.wage.agent") + " an hour, marginal load " + benchmark("load.marginal") + ", loaded " + benchmark("load.benefits") + "; return factor 1.2; moderate curve; $1,500 training and 4 ramp weeks"]],
     steps: [
       ["Eligible voice", num(P.voiceVol) + " voice × 60% = " + num(P.eligible) + "; " + num(P.shifted) + " shifted, within the pool"],

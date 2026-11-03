@@ -29,7 +29,7 @@ ok("the shown score is clipped at the cap and marked with a plus", /score: Math\
 ok("the page and the PDF print the shown score, never the raw one", !/\{v\.score\}/.test(S) && !/v\.score\.toString\(\)/.test(S) && !/Fit Score: \$\{v\.score\}/.test(S) && (S.match(/shownScore\(v\)/g) || []).length >= 3);
 ok("the leading group is labelled on the page and in the PDF", /v\.lead\?"Leading group"/.test(S) && /v\.lead \? "Leading group"/.test(S) && /too close to separate/.test(S));
 ok("the method note discloses the cap, its reason and the leading group", /no score shows above \$\{SCORE_CAP\}/.test(S) && /almost half of buyer profiles/.test(S) && /about a quarter several vendors reach it/.test(S) && /within \$\{LEAD_GAP\} points of the top vendor/.test(S));
-ok("the heading no longer claims a ranking", !/Ranked by fit/.test(S) && /A Phase 1 starting list, ordered by fit on that model/.test(S));
+ok("the heading no longer claims a ranking", !/Ranked by fit/.test(S) && /A starting list from our earlier model, ordered by fit on that model/.test(S));
 
 section("2. 20,000 buyer profiles through the tool's own scoring lines");
 const VENDORS = grab("VENDORS"), PRIORITIES = grab("PRIORITIES"), SIZES = grab("SIZES"), VERTICALS = grab("VERTICALS");
@@ -67,7 +67,7 @@ ok("the size field says it does not change the list yet", /hint="Noted in your r
 ok("24 Phase 1 vendors, weights unchanged", VENDORS.length === 24 && /s\+=\(v\.dims\[pId\]-70\)\*0\.12/.test(S) && /s\+=\(v\.dims\[k\]-70\)\*\(imp-3\)\*0\.06/.test(S) && /s\+=\(v\.dims\.cost-70\)\*0\.15/.test(S));
 /* Audit 30 Sep: labels the Phase 1 model cannot support. */
 ok("no fit verdict words on the page or in the PDF", !/Strong Fit|Good Fit|Conditional Fit|Weak Fit/.test(S));
-ok("integrations are named as Phase 1 data, never as verified", !/Verified [Ii]ntegrations/.test(S) && /Integrations named in the Phase 1 data/.test(S));
+ok("integrations are named as Phase 1 data, never as verified", !/Verified [Ii]ntegrations/.test(S) && /Integrations named in our earlier data/.test(S));
 ok("the Phase 1 migration notes no longer render", !/Platform Context/.test(S) && !/platformData\.notes/.test(S));
 const gr = S.slice(S.indexOf("const getResults"), S.indexOf("const handleResults"));
 ok("compliance picks do not reach the order, and the step says so", !/compliance/.test(gr) && /These do not change the list or its order/.test(S));

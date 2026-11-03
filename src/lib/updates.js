@@ -33,7 +33,7 @@ export function updateEntries({ items = publishedItems(), research = CCAAS_RESEA
   }));
   const rs = Object.entries(research).map(([slug, r]) => ({
     id: `research-${slug}`, date: r.validated, type: "research", title: `${vendorDisplayName(slug)} research published`,
-    summary: `Our research on ${vendorDisplayName(slug)}: fit, findings with their sources, where it breaks, what it takes to run, and what to ask for. Validated ${r.validated}.`,
+    summary: `Our research on ${vendorDisplayName(slug)}: fit, findings with their sources, where it breaks, what it takes to run, and what to ask for. Research finished ${r.validated}.`,
     path: `/vendors/${slug}`, tags: ["vendor research"], source: null,
   }));
   const slugOf = Object.fromEntries(Object.entries(research).map(([slug, r]) => [r.vendorId, slug]));

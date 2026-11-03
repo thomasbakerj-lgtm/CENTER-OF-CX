@@ -53,7 +53,7 @@ function Theme({ t }) {
                   <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 4, alignItems: "center" }}>
                     <span style={chip}>{KIND[r.kind]}</span>
                     {evidence(r.state) && <span style={{ ...chip, fontWeight: 500 }}>{evidence(r.state)}</span>}
-                    {r.validated && <span style={K.small}>Validated {fmtDate(r.validated)}</span>}
+                    {r.validated && <span style={K.small}>Checked {fmtDate(r.validated)}</span>}
                   </div>
                 </li>
               ))}

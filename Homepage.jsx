@@ -146,7 +146,7 @@ export default function Homepage() {
         onStart={() => trackHome.start(door.event, route.id, route.to)}>{route.fact && <IndustryFact fact={route.fact} />}</RouteCard>
     : door.page
       ? <RouteCard pillar={door.pillar} kicker={pillar.name} time={door.page.time} title="Dated, labelled, kept apart" steps={door.page.rules.map((r) => ({ name: r }))} cta={door.page.cta} href={door.page.href} />
-      : <RouteCard pillar={door.pillar} kicker={pillar.name} time="Coming soon" title="Follow it as it is built" steps={door.soon.rules.map((r) => ({ name: r }))} cta={door.soon.cta} href={door.soon.href} />;
+      : <RouteCard pillar={door.pillar} kicker={pillar.name} time="Coming soon" title="Follow it as we build it" steps={door.soon.rules.map((r) => ({ name: r }))} cta={door.soon.cta} href={door.soon.href} />;
 
   return (
     <main className="cx-home" style={{ backgroundColor: HOUSE.ink, color: HOUSE.mist, fontFamily: FONT_SANS }}>

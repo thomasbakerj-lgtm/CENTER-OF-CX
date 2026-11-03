@@ -65,7 +65,7 @@ for (const [slug, { vendorId }] of bySlug) {
   for (const x of researchStrings) own = own.split(x).join(" ");
   if (/\b(NaN|Infinity|undefined|null)\b/.test(own)) problems.push(`${slug} prints ${(own.match(/.{0,30}\b(NaN|Infinity|undefined|null)\b.{0,20}/) || [""])[0]}`);
   const head = views.fit.t;
-  if (!head.includes(file.vendor.Supplier_Name) || !/Researched · validated/.test(head)) problems.push(`${slug} header`);
+  if (!head.includes(file.vendor.Supplier_Name) || !/Researched · checked/.test(head)) problems.push(`${slug} header`);
   if (!views.fit.html.includes(`href="/contact?intro=${slug}&amp;from=vendor"`)) problems.push(`${slug} introduction`);
   { const tg = (await import("./src/lib/research/ccaasTags.js")).tagsFor(file.vendor.Vendor_ID);
     if (!tg || !head.includes(tg.category) || !tg.sizes.every((z) => head.includes(z.label)) || !head.includes("Who it is sold to") || !head.includes("Sizes, in the research's words") || !head.includes("Where it runs") || !head.includes("Take it further") || !tg.notes.every((n) => head.includes(n.text))) problems.push(`${slug} tags`); }
@@ -93,7 +93,7 @@ for (const [slug, { vendorId }] of bySlug) {
   if (file.breaks.length && !file.breaks.every((b) => views.breaks.t.includes(norm(rd(b.Break_Summary))))) problems.push(`${slug} breaks missing`);
   if (file.proof_requirements.length && !views.ask.t.includes("Proof to ask for")) problems.push(`${slug} proof missing`);
   if (file.decision_intelligence.length && !file.decision_intelligence.every((d) => views.fit.t.includes(norm(rd(d.Statement))))) problems.push(`${slug} decisions missing`);
-  if (p.klass && p.klass.draft && !/Provisional peer group|Draft class/.test(views.fit.t)) problems.push(`${slug} draft class unmarked`);
+  if (p.klass && p.klass.draft && !/Provisional peer group|Draft peer group/.test(views.fit.t)) problems.push(`${slug} draft class unmarked`);
 }
 ok(`22 researched vendors render all ${VIEWS.length} views cleanly [${problems.slice(0, 4).join("; ")}]`, bySlug.length === 22 && problems.length === 0);
 
@@ -182,11 +182,11 @@ section("5. Research Method v2: the method note at the foot, the cost view, the 
     const file = JSON.parse(readFileSync(`${DIR}/vendors/${r.vendorId}.json`, "utf8"));
     const html = renderToString(React.createElement(Page, { slug, file, shared, manifestDate: "2026-10-01", initialView: "fit" }));
     const at = html.indexOf("data-method-note=");
-    const want = file.vendor.Method_Version === "2" ? "Researched under Research Method 2." : "Researched under Research Method 1. A re-audit under Research Method 2 is in progress.";
+    const want = file.vendor.Method_Version === "2" ? "Researched with our current method." : "Researched with our first method. We are checking it again against our current method.";
     /* At the foot: after the corrections note and the citation line, with nothing but the link and closing tags after it. */
     const foot = html.indexOf('aria-label="Corrections"');
     if (at < 0 || foot < 0 || at < foot || !html.slice(at).includes(want) || !html.slice(at).includes('href="/research/vendor-method"')) bad.push(slug + " foot");
-    if (/re-audit|Research Method/i.test(text(html.slice(0, foot)))) bad.push(slug + " method named above the foot");
+    if (/re-audit|Research Method|our (?:current|first) method/i.test(text(html.slice(0, foot)))) bad.push(slug + " method named above the foot");
     const cost = text(renderToString(React.createElement(Page, { slug, file, shared, manifestDate: "2026-10-01", initialView: "cost" })));
     if (file.tco.length && (!file.tco.every((x) => cost.includes(norm(x.Cost_Component))) || !/are not added up/.test(cost))) bad.push(slug + " cost");
     if (file.tco.some((x) => x.Price_Points_Verified !== "YES" && Array.isArray(x.Public_Price_Points) && x.Public_Price_Points.length) && /Published price:/.test(cost)) bad.push(slug + " unverified price shown");

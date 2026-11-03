@@ -62,7 +62,7 @@ const DIAGNOSTIC_ROUTES = [
 const VENDOR_ROUTES = [
   { id: "category", label: "Understand a category", sub: `What each of ${CATEGORY_COUNT} categories covers, vendors A to Z.`, layer: null,
     kicker: "Vendor Intelligence", time: `${CATEGORY_COUNT} categories`, title: "The category first, then the vendors",
-    steps: [page("Categories", "What each category covers, with its vendors A to Z.", "/vendors"), page("Research status", "Every profile says whether it is researched under the current method, and when.", CATEGORIES.ccaas.page), tool("rfp-builder", "Turn what you need into requirements you can score.")],
+    steps: [page("Categories", "What each category covers, with its vendors A to Z.", "/vendors"), page("Research status", "Every profile says whether we have researched it in depth, and when.", CATEGORIES.ccaas.page), tool("rfp-builder", "Turn what you need into requirements you can score.")],
     ending: "A view of the category before any vendor is named.", cta: "Open the categories", href: "/vendors", to: "vendor" },
   { id: "vendor", label: "Look up a vendor", sub: "One profile: what it sells and how far it is researched.", layer: null,
     kicker: "Vendor Intelligence", time: `${VENDOR_PROFILE_COUNT} profiles`, title: "Find a vendor",
@@ -98,17 +98,17 @@ export const DOORS = [
   { pillar: "diagnostics", event: "diagnostics", line: "Run the numbers on your own operation: cost, staffing, AI proposals, renewals, readiness.",
     meta: `${TOOL_COUNT} tools. ${METHOD_COUNT} published methods.`, question: "What are you trying to work out?", routes: DIAGNOSTIC_ROUTES, cols: 2 },
   { pillar: "vendors", event: "vendors", line: `Vendor profiles in ${CATEGORY_COUNT} categories, listed A to Z. No vendor pays to appear or to move.`,
-    meta: `${VENDOR_PROFILE_COUNT} profiles. ${CCAAS_COMPLETE_COUNT} CCaaS researched in full.`, question: "How do you want to look at the market?", routes: VENDOR_ROUTES, cols: 1 },
+    meta: `${VENDOR_PROFILE_COUNT} profiles. ${CCAAS_COMPLETE_COUNT} contact center platforms researched in depth.`, question: "How do you want to look at the market?", routes: VENDOR_ROUTES, cols: 1 },
   { pillar: "industries", event: "industries", line: "What your sector demands, sourced: regulation, published benchmarks, failure modes.",
     meta: `${INDUSTRY_COUNT} industries. ${SEGMENT_COUNT} segments.`, question: "Which industry are you in?", routes: INDUSTRY_ROUTES, cols: 5 },
   { pillar: "research", event: "research", line: "Original studies, with the data and the method published beside them.", meta: "In preparation",
     soon: { body: "Studies we run ourselves, starting from what professionals choose to share through the diagnostics. Nothing is collected until the consent design is published.",
-      rules: ["Every study publishes its data, its method and its limits.", "Participation is opt-in and anonymous.", "Tell us what to study first: every idea is read."],
+      rules: ["Every study publishes its data, its method and its limits.", "Participation is opt-in and anonymous.", "Tell us what to study first. We read every idea."],
       cta: "Suggest a study", href: "/research#ideas" } },
   { pillar: "marketWatch", event: "market-watch", line: "Launches, deals, outages and rules, each labelled for its source.",
-    meta: MW_COUNT ? `${MW_COUNT} items. Latest ${longDate(MW_LATEST)}.` : "Items appear as they are checked.", question: "What is new in the market?",
+    meta: MW_COUNT ? `${MW_COUNT} items. Latest ${longDate(MW_LATEST)}.` : "Items appear once we check them.", question: "What is new in the market?",
     page: { body: "What is new in the contact center and CX technology market, kept apart from the research. Each item is dated, written in our words from the page it cites, and labelled for its source.",
-      rules: ["Every item is labelled: verified, news, or supplied by the vendor.", "An item never changes a profile, a finding or a starting list.", "A new entrant gets a researched profile once it passes the research gate."],
+      rules: ["Every item is labelled: verified, news, or supplied by the vendor.", "An item never changes a profile, a finding or a starting list.", "A new vendor gets a researched profile once we finish researching it."],
       cta: "Read Market Watch", href: "/market-watch", time: MW_LATEST ? `Updated ${longDate(MW_LATEST)}` : "Open" } },
 ];
 
@@ -140,7 +140,7 @@ export const LAYER_INFO = Object.fromEntries(PLATFORM_DECISION.layers.map((l) =>
 /* Proof, from the registries. */
 export const PROOFS = [
   { n: String(METHOD_COUNT), text: "methods published: the rules and formulas each tool runs, in words, with where every constant comes from.", link: "Read a method", href: "/methodology/cost-per-contact" },
-  { n: String(CCAAS_COMPLETE_COUNT), text: "CCaaS vendors researched under the current method, each profile with its validation date.", link: "See the research", href: CATEGORIES.ccaas.page },
+  { n: String(CCAAS_COMPLETE_COUNT), text: "contact center platforms researched in depth, each with the date we finished.", link: "See the research", href: CATEGORIES.ccaas.page },
   { n: "A to Z", text: "Vendor lists run alphabetically. No vendor can pay to appear or to move.", link: "Browse the vendors", href: "/vendors" },
 ];
 

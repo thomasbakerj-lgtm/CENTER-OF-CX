@@ -2,7 +2,7 @@ export const insuranceSubVerticals = {
   "personal-lines": {
     name: "Personal Lines P&C", parent: "Insurance",
     tagline: "Auto, home, renters, and umbrella. High-volume FNOL, CAT surges, and retention.",
-    intro: "Personal lines P&C contact centers take some of the most emotional calls in insurance. Policyholders reach out after a collision or a destroyed roof, often during a regional catastrophe that multiplies volume overnight. The operating challenge is capturing complete FNOL data on the first contact while the policyholder feels heard, then holding that standard when CAT surges hit.",
+    intro: "Personal lines property and casualty (P&C) contact centers take some of the most emotional calls in insurance. Policyholders reach out after a collision or a destroyed roof, often during a regional catastrophe that multiplies volume overnight. The operating challenge is capturing a complete first notice of loss (FNOL) on the first contact while the policyholder feels heard, then holding that standard when catastrophe (CAT) surges hit.",
     kpis: [
       { metric: "AHT", avg: "[[ins.sv.personal-lines.aht]]", note: "Driven by first notice of loss intake and coverage verification" },
       { metric: "FCR", avg: "[[ins.sv.personal-lines.fcr]]", note: "Claims that need adjuster assignment and follow-up hold it down" },
@@ -84,7 +84,7 @@ export const insuranceSubVerticals = {
         pitfall: "Commercial audits (annual premium reconciliation based on actual payroll/revenue vs estimated) generate significant contact center volume because policyholders don't understand why they owe additional premium. Build a proactive audit communication workflow: notify the policyholder [[ins.cl.audit.notice]] before the audit, explain the process, provide documentation requirements, and offer a payment plan for any additional premium. Reactive audit notices create angry calls."
       },
       { layer: 1, name: "Data Access", capabilities: ["Policy administration with multi-line, multi-location commercial accounts","Claims management across GL, property, auto, and WC for same account","Billing with complex premium installment and audit reconciliation","Broker management system with production, commission, and correspondence","Underwriting workbench with risk data, loss history, and pricing"], vendors: "Guidewire, Duck Creek, Salesforce, Applied Epic", risk: "Agent seeing one policy line but not the full commercial account relationship",
-        stack: [{ name: "Applied Epic", role: "Agency Management", why: "A widely used agency management system. Brokers use Applied Epic to manage their book. Carriers that integrate with Applied Epic give agents visibility into the broker relationship.", href: "/vendors" }, { name: "Guidewire InsuranceSuite", role: "Core Systems", why: "Policy, claims, and billing for the carrier side. The agent desktop must show the full commercial account, all policies, all claims, all billing, in one view.", href: "/vendors" }],
+        stack: [{ name: "Applied Epic", role: "Agency Management", why: "A widely used agency management system. Brokers use Applied Epic to manage their book. Carriers that integrate with Applied Epic give agents visibility into the broker relationship.", href: "/vendors" }, { name: "Guidewire InsuranceSuite", role: "Core Systems", why: "Policy, claims, and billing for the carrier side. The agent desktop must show the full commercial account in one view: all policies, all claims, all billing.", href: "/vendors" }],
         pitfall: "Commercial accounts are multi-policy relationships. [[ins.ex.cl.account]] If the agent desktop shows these as separate policies instead of one commercial account, the agent can't understand the relationship or provide relationship-level service. Build an account-level view that shows all policies, total premium, total claims, and account profitability."
       },
     ],
@@ -134,7 +134,7 @@ export const insuranceSubVerticals = {
 
   "workers-comp": {
     name: "Workers' Compensation", parent: "Insurance",
-    tagline: "Injury reporting, claims management, return-to-work coordination, and employer/employee dual-audience.",
+    tagline: "Injury reporting, claims management, return-to-work coordination, and service for both employers and injured workers.",
     intro: "Workers' comp contact centers serve two audiences with different needs: employers (reporting injuries, managing premiums, understanding experience mods) and injured workers (filing claims, understanding benefits, navigating medical treatment). The CX challenge is balancing employer accountability with employee advocacy, while managing the medical and legal complexity of every claim.",
     kpis: [
       { metric: "AHT", avg: "[[ins.sv.workers-comp.aht]]", note: "Driven by injury details, medical coordination and return-to-work planning" },
@@ -176,7 +176,7 @@ export const insuranceSubVerticals = {
 
   "specialty-lines": {
     name: "Specialty & Surplus Lines", parent: "Insurance",
-    tagline: "Cyber, E&O, D&O, marine, aviation, and excess: sophisticated policyholders and broker-driven.",
+    tagline: "Cyber, E&O, D&O, marine, aviation, and excess, for sophisticated policyholders and their brokers.",
     intro: "Specialty lines contact centers serve some of the most sophisticated policyholders and brokers in insurance. A CFO calling about their D&O coverage limit and a CISO calling about their cyber incident response protocol expect expert-level service. Generalist agents reading from scripts cannot give it. The CX challenge is staffing a contact center with the technical insurance knowledge that specialty lines demand.",
     kpis: [
       { metric: "AHT", avg: "[[ins.sv.specialty-lines.aht]]", note: "Driven by complex coverage discussions and claims coordination" },
@@ -229,7 +229,7 @@ export const insuranceSubVerticals = {
     layers: [
       { layer: 7, name: "Analytics & Governance", capabilities: ["App experience monitoring with support trigger correlation","Claims AI accuracy tracking with human review audit","CSAT embedded in app with one-tap post-interaction feedback","Support volume correlation to app releases and product launches","Regulatory compliance dashboards meeting state DOI requirements"], vendors: "Amplitude, Mixpanel, NICE", risk: "Scaling support without losing the speed that defines the brand",
         stack: [{ name: "Amplitude", role: "Product Analytics", why: "Connects in-app behavior to support contacts. Shows which app screens or flows generate the most support tickets. Product fixes reduce support volume.", href: "/vendors" }],
-        pitfall: "Insurtechs track product metrics (quote conversion, bind rate) and support metrics (CSAT, AHT) separately. The breakthrough insight is connecting them: [[ins.ex.it.quote]], that's a product friction problem disguised as a support problem. Pipe support data into product analytics."
+        pitfall: "Insurtechs track product metrics (quote conversion, bind rate) and support metrics (CSAT, AHT) separately. The insight comes from connecting them: [[ins.ex.it.quote]], that's a product friction problem disguised as a support problem. Pipe support data into product analytics."
       },
       { layer: 6, name: "Routing & Orchestration", capabilities: ["In-app support routing with full user context and policy data","Claims routing with AI pre-triage for fast-track vs complex","Fraud detection routing flagging suspicious claims before assignment","Escalation routing for regulatory complaints and complex coverage questions","Chat-first routing with phone as the overflow channel"], vendors: "Intercom, Zendesk, NICE CXone", risk: "Claims AI auto-approving a fraudulent claim without human review",
         stack: [{ name: "Intercom", role: "In-App Support", why: "In-app messaging with full user context. Agents see policy, claims history, and recent app activity. Purpose-built for product-led companies.", href: "/vendors/digital-engagement" }, { name: "Zendesk", role: "Support Platform", why: "More structured ticketing for insurtechs as the support team grows. Better for managing the mix of claims, policy service, and billing.", href: "/vendors" }],

@@ -545,8 +545,8 @@ A("a clean document discloses no enum correction at all",
   const railDoc = render({ ...SETS.B, label: "rail volume", pre: { M: { value: SETS.B.M, src: "cost-per-contact" } } });
   const linkDoc = render({ ...SETS.B, label: "same values from a link", fromLink: true, pre: { M: { value: SETS.B.M, src: "fcr-leakage" } } });
   const conf = (d) => d.sections.find((s) => s.title === "Confidence and Risk Flags").items;
-  A("a restored own value prints Directional evidence and names self-credentialing", selfDoc.R.evidence === "Directional" && /a tool never credentials itself/.test(conf(selfDoc)[0]));
-  A("a rail value with no origin prints Directional evidence and names the rail", railDoc.R.evidence === "Directional" && /arrived over the rail with no recorded origin grade/.test(conf(railDoc)[0]));
+  A("a restored own value prints Directional evidence and names self-credentialing", selfDoc.R.evidence === "Directional" && /a tool cannot vouch for its own figures/.test(conf(selfDoc)[0]));
+  A("a rail value with no origin prints Directional evidence and names the rail", railDoc.R.evidence === "Directional" && /came from another tool with no recorded origin grade/.test(conf(railDoc)[0]));
   A("the same values from a scenario link are the sender's entries", linkDoc.R.evidence === "Planning-grade" && linkDoc.R.origins.M === "entered");
   A("set B prints Planning-grade headline with a whole model", render(SETS.B).R.confidence === "Planning-grade" && render(SETS.B).R.completeness === "Finance-grade");
   A("set A prints Directional, bound by evidence on a modeled repeat share", render(SETS.A).R.confidence === "Directional" && /modeled from FCR/.test(conf(render(SETS.A))[0]));

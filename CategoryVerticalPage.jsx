@@ -58,7 +58,7 @@ export default function CategoryVerticalPage() {
             <span style={{ color: LIGHT }}>{vert.name}</span>
           </h1>
           <p style={{ fontSize: 15, color: HOUSE.body, lineHeight: 1.6, maxWidth: 600 }}>
-            {`What ${vert.name} asks of ${cat.name}: the rules that apply, the systems buyers integrate, and how the work differs. Vendors are listed on the category page, A to Z; this page evaluates none.`}
+            {`What ${vert.name} asks of ${cat.name}: the rules that apply, the systems buyers integrate, and how the work differs. The category page lists its vendors, A to Z. This page evaluates none of them.`}
           </p>
           <div style={{ display: "flex", gap: 8, marginTop: 16, flexWrap: "wrap" }}>
             <a href={cat.page} style={{ fontSize: 12, color: LIGHT, padding: "5px 12px", borderRadius: 4, border: `1px solid ${alpha(HOUSE.mist, LINE.hair)}` }}>All {cat.name} vendors →</a>
@@ -107,11 +107,11 @@ export default function CategoryVerticalPage() {
       {/* Tools */}
       <section style={{ background: WARM, padding: "28px 28px", borderTop: `1px solid ${BORDER}` }}>
         <div style={WRAP}>
-          <h3 style={{ fontSize: 13, fontWeight: 600, color: MUTED, marginBottom: 12 }}>Tools for {vert.name} {cat.name} evaluation</h3>
+          <h3 style={{ fontSize: 13, fontWeight: 600, color: MUTED, marginBottom: 12 }}>Tools for evaluating {cat.name} in {vert.name}</h3>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10 }} className="pg">
             {[
               { name: "Vendor Match Engine", desc: "A starting list of contact center platforms for " + vert.name, href: "/tools/vendor-match" },
-              { name: "Platform Decision", desc: "The renewal gate for your current platform", href: "/tools/platform-decision" },
+              { name: "Platform Decision", desc: "Should you renew your current platform?", href: "/tools/platform-decision" },
               { name: "Contract Risk Scanner", desc: "Analyze terms before signing", href: "/tools/contract-risk" },
             ].map((t, i) => (
               <a key={i} href={t.href} style={{ display: "block", background: HOUSE.ink, border: `1px solid ${BORDER}`, borderRadius: 8, padding: "14px 16px", borderLeft: `3px solid ${ELECTRIC}`, transition: "all 0.15s" }}

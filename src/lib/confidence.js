@@ -181,7 +181,7 @@ export function emitGrades(input) {
   if (naDeclared && !String(naReason).trim()) {
     defects.push(
       "Realization is marked not applicable and no reason was stated. A silent N/A is " +
-      "indistinguishable from an oversight, so this artifact cannot show why the axis was dropped."
+      "indistinguishable from an oversight, so this report cannot show why the axis was dropped."
     );
   }
   if (!naDeclared && String(naReason).trim()) {

@@ -51,14 +51,14 @@ export function PerspectivesIndex({ pieces = PIECES, contributors = CONTRIBUTORS
       <header style={{ display: "flex", flexDirection: "column", gap: 10 }}>
         <span style={{ ...K.kicker, color: ACCENT }}>Research</span>
         <h1 style={{ margin: 0, fontSize: "clamp(28px, 4vw, 40px)", fontWeight: 700, lineHeight: 1.12 }}>Contributor perspectives</h1>
-        <p style={K.body}>Practitioners, consultants, analysts and academics writing under their own names. Each piece is reviewed for facts, sources and disclosure, and is the author's view. None of it changes a research finding, a grade or a tool's result.</p>
+        <p style={K.body}>Practitioners, consultants, analysts and academics writing under their own names. We review each piece for facts, sources and disclosure. Each one is the author's view. None of it changes a research finding, a grade or a tool's result.</p>
       </header>
       {list.length
         ? <ul style={{ margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: 16 }}>{list.map((p) => <Card key={p.slug} piece={p} author={contributors[p.author]} />)}</ul>
         : (
           <section style={{ ...K.panel, display: "flex", flexDirection: "column", gap: 12 }}>
             <h2 style={{ ...K.h2, margin: 0 }}>No pieces published yet</h2>
-            <p style={K.body}>The rules are published and proposals are open. The first pieces appear here once they have been reviewed.</p>
+            <p style={K.body}>The rules are published and proposals are open. The first pieces appear here once we have reviewed them.</p>
             <div><Button href="/contribute">Read the rules and propose a piece</Button></div>
           </section>
         )}

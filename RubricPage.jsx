@@ -508,7 +508,7 @@ function CalcPage({ r }) {
         {r.example.steps.map(([a, b]) => <div key={a} style={box}><div style={{ ...TYPE.label, color: NAVY }}>{a}</div><p style={{ ...P, fontSize: 14, margin: "4px 0 0" }}>{b}</p></div>)}
         {fixturesFor(r.id).length > 0 && <>
           <h2 style={H2}>Checked against</h2>
-          <p style={P}>Cases whose answer is known outside this site. The test suite computes each one with this tool's own engine on every change.</p>
+          <p style={P}>Cases whose answer is known outside this site. Our automated tests compute each one with this tool's own math on every change.</p>
           {fixturesFor(r.id).map((f) => <div key={f.id} style={box}><div style={{ ...TYPE.label, color: NAVY }}>{f.title} <span style={{ color: SLATE, fontWeight: 600 }}>· {FIXTURE_KIND[f.kind]}</span></div><p style={{ ...P, fontSize: 14, margin: "4px 0 0" }}>{f.case} Result: {f.expected}. {f.source}</p></div>)}
         </>}
         {r.checks && <>

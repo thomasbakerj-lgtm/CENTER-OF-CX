@@ -46,18 +46,18 @@ export const SOURCES = {
 };
 
 export const STEPS = [
-  { t: "Research", d: "The platform is researched from its own documentation and from independent sources, one vendor at a time." },
-  { t: "Challenge", d: "A separate pass looks for evidence that contradicts each material finding. Every search is recorded, including the ones that find nothing." },
-  { t: "Audit", d: "The vendor's research is checked against a completion checklist before it can publish." },
+  { t: "Research", d: "We research each platform from its own documentation and from independent sources, one vendor at a time." },
+  { t: "Challenge", d: "A separate review looks for evidence that contradicts each material finding. Every search is recorded, including the ones that find nothing." },
+  { t: "Audit", d: "We check the research against a completion checklist before it can publish." },
   { t: "Sign-off", d: "A person reviews every rule-it-out finding, every critical break, every published price and a sample of everything else." },
-  { t: "Revisit", d: "A vendor is researched again when something material changes: an acquisition, a major release, a pricing change, or new evidence that contradicts a finding." },
+  { t: "Revisit", d: "We research a vendor again when something material changes: an acquisition, a major release, a pricing change, or new evidence that contradicts a finding." },
 ];
 
-export const PEER_GROUPS_NOTE = "Each platform is compared only with platforms that do the same job, in its peer group. The site publishes no scores, ranks or tiers. Ratings stay unpublished until a peer group has at least three vendors researched under the current method and checked against each other.";
+export const PEER_GROUPS_NOTE = "Each platform is compared only with platforms that do the same job, in its peer group. The site publishes no scores, ranks or tiers. Ratings stay unpublished until a peer group has at least three vendors researched in depth and checked against each other.";
 
 export const VERSIONS = [
-  { v: "Research Method 2", from: "1 October 2026", d: "Adds the evidence labels above, the record of every challenge search, where a platform wins, who runs it, the five cost layers and the admin change test." },
-  { v: "Research Method 1", from: "September 2026", d: "The method the first vendors were researched under. Each one is being re-audited under Method 2; until then, the foot of its page says so." },
+  { v: "Research Method 2", from: "1 October 2026", d: "Our current method. It adds the evidence labels above, the record of every challenge search, where a platform wins, who runs it, the five cost layers and the admin change test." },
+  { v: "Research Method 1", from: "September 2026", d: "Our first method, used for the first vendors. We are checking each one again under Method 2. Until we finish, the foot of its page says so." },
 ];
 
 export const INDEPENDENCE = "No vendor, reseller or partner program funds, reviews or influences the research. No vendor pays to appear, previews a page or approves a finding.";

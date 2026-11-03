@@ -74,7 +74,7 @@ export default function ShrinkagePlanner() {
   const assumptions = [
     `Every category is a percent of paid hours, so the categories add. If you measure a category against hours present instead, convert it first: multiply it by one minus your out-of-office shrinkage.`,
     `Paid hours ${SHRINK_PARAMS.hoursYear.toLocaleString("en-US")} a year: the full-time definition.`,
-    `Benefits load ${SHRINK_PARAMS.load}x, the platform's shared heuristic.`,
+    `Benefits load ${SHRINK_PARAMS.load}x, the planning heuristic all our tools use.`,
     `Planning range ${rangeText}: heuristic, no published source.`,
     `Hourly rate ${wageAtBenchmark ? `is the BLS median for customer service representatives, ${BLS_WAGE_VINTAGE}.` : "entered by you."}`,
   ];

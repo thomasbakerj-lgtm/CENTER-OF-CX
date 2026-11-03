@@ -66,7 +66,7 @@ function VendorCard({ v, note }) {
       <p style={K.small}>
         <a href={`/vendors/${slug}`} style={K.link}>Full research</a>{" · "}
         <a href={alternativesPath(slug)} style={K.link}>Alternatives to {v.name}</a>{" · "}
-        <VendorIntroLink slug={slug} name={v.name} from="compare" surface="category" color={ACCENT} />{" · "}Validated {fmtDate(v.validated)}
+        <VendorIntroLink slug={slug} name={v.name} from="compare" surface="category" color={ACCENT} />{" · "}Checked {fmtDate(v.validated)}
       </p>
     </li>
   );
@@ -97,9 +97,9 @@ export function ClassCompare({ id }) {
       <section aria-labelledby="about" style={K.panel}>
         <h2 id="about" style={K.h2}>What this group is</h2>
         <p style={K.body}>{p.compared}</p>
-        <p style={K.small}>Research class: {c.name}. {c.definition}</p>
+        <p style={K.small}>The research calls this group {c.name}. {c.definition}</p>
         {c.buyer && <p style={K.small}>Typical buyer, as the research states it: {c.buyer}</p>}
-        {c.boundary && <p style={K.small}>How the research compares this class, in its own words: {c.boundary}</p>}
+        {c.boundary && <p style={K.small}>How the research compares this group, in its own words: {c.boundary}</p>}
         {c.draft && <p style={K.small}>This peer group is provisional.</p>}
         <p style={{ ...K.small, marginTop: 8 }}>{NO_ORDER}</p>
       </section>
@@ -159,7 +159,7 @@ export function Alternatives({ slug }) {
                 <ul style={list}>{v.decisions[k].map((d) => <li key={d.id} style={K.body}>{words(d.statement)}</li>)}</ul>
               </div>
             ))}
-            <p style={K.small}>The research's own statements about {v.name}, validated {fmtDate(v.validated)}.</p>
+            <p style={K.small}>The research's own statements about {v.name}, checked {fmtDate(v.validated)}.</p>
           </>}
       </section>
 
@@ -167,7 +167,7 @@ export function Alternatives({ slug }) {
         <h2 id="peers" style={K.h2}>Researched for the same job</h2>
         {peers.length
           ? <ul style={{ margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: 12 }}>{peers.map((x) => <VendorCard key={x.id} v={x} />)}</ul>
-          : <p style={K.body}>No other platform is researched in this group yet.</p>}
+          : <p style={K.body}>We have not yet researched another platform in this group.</p>}
         <p style={{ ...K.small, marginTop: 10 }}><a href={comparePath(v.klass)} style={K.link}>Compare the whole group side by side</a></p>
       </section>
 
@@ -187,7 +187,7 @@ export function Alternatives({ slug }) {
 function Missing() {
   return (
     <Page crumbs={[["Contact center platforms", "/vendors/ccaas"]]} kicker="Compare" title="No comparison here">
-      <p style={K.body}>Comparisons exist for researched platforms only. See <a href="/vendors/ccaas" style={K.link}>contact center platforms by job</a>.</p>
+      <p style={K.body}>We compare only the platforms we have researched in depth. See <a href="/vendors/ccaas" style={K.link}>contact center platforms by job</a>.</p>
     </Page>
   );
 }
