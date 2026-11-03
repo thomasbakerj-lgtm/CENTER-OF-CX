@@ -28,8 +28,8 @@ export const OCCUPANCY_MODEL = {
   published: "2026-09-28",
   route: "/tools/occupancy-risk",
   methodology: "/methodology/occupancy-risk",
-  what: "How the Occupancy Risk Simulator turns your queue into an occupancy figure, places it in the platform's shared bands, sizes the staffing to reach your target, and attaches a labelled planning cost to running above it.",
-  claimClasses: "Occupancy and the agents needed at each level are arithmetic on your inputs. The bands are the platform's shared operating bands. The attrition multipliers are assumptions, labelled as planning heuristics. Every cost is a conditional forecast: under these assumptions, this is what the model computes.",
+  what: "How the Occupancy Risk Simulator turns your queue into an occupancy figure, places it in the occupancy bands all our tools use, sizes the staffing to reach your target, and attaches a labelled planning cost to running above it.",
+  claimClasses: "Occupancy and the agents needed at each level are arithmetic on your inputs. The bands are the operating bands all our tools use. The attrition multipliers are assumptions, labelled as planning heuristics. Every cost is a conditional forecast: under these assumptions, this is what the model computes.",
   formulas: [
     { name: "Workload", formula: "Calls per hour × AHT in seconds ÷ 3,600", note: "The offered load in Erlangs: how many agents would be busy every moment if work arrived perfectly evenly." },
     { name: "Occupancy", formula: "Workload ÷ agents on queue", note: "At or above 100% the queue grows without limit; the tool says so instead of printing an occupancy above 100%." },
@@ -44,7 +44,7 @@ export const OCCUPANCY_MODEL = {
     { label: "Caution", range: "Above " + pc(BENCH.occupancy.healthyMax, 0) + " to " + pc(BENCH.occupancy.cautionMax, 0), meaning: "Workable for peaks. The model raises attrition " + P.mult.caution + "x." },
     { label: "Critical", range: "Above " + pc(BENCH.occupancy.cautionMax, 0), meaning: "Minimal recovery time. The model raises attrition " + P.mult.critical + "x, and applies the same when the queue is overloaded." },
   ],
-  bandsNote: "These are the platform's shared occupancy bands, the same ones the Staffing Calculator uses, so an occupancy gets the same label in every tool.",
+  bandsNote: "Every tool uses these occupancy bands, the Staffing Calculator included, so an occupancy gets the same label everywhere.",
   constants: () => [
     ...benchmarksForTool("occupancy-risk").map((e) => ({ id: e.id, value: e.value, unit: e.unit, kind: e.kind, source: e.source, rationale: e.rationale })),
     ...["time.hours.week", "time.hours.year", "load.benefits", "market.wage.agent"].map((id) => ({ id, ...BENCHMARK_SOURCES[id] })),

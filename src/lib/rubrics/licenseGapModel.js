@@ -50,7 +50,7 @@ export const LICENSE_MODEL = {
     ...benchmarksForTool("license-gap").map((e) => e.id),
   ].map((id) => ({ id, ...BENCHMARK_SOURCES[id] })),
   example: {
-    note: "Computed by the tool's own engine at its opening quote (150 agents at the default seat price, WEM, QA and analytics as per-seat add-ons, recording included), plus a " + P.committedSeats + "-seat commit, a " + P.uplift + "% renewal uplift and " + P.seats18mo + " seats added within 18 months.",
+    note: "Computed by the tool itself at its opening quote (150 agents at the default seat price, WEM, QA and analytics as per-seat add-ons, recording included), plus a " + P.committedSeats + "-seat commit, a " + P.uplift + "% renewal uplift and " + P.seats18mo + " seats added within 18 months.",
     inputs: [["Seats", "150 agents at $125"], ["Add-ons", "WEM $25 and QA $15 on agents and supervisors, analytics $20 on all seats"], ["Contract", P.committedSeats + " committed seats at the license rate, " + P.uplift + "% annual uplift, " + P.seats18mo + " seats within 18 months"]],
     steps: [
       ["Quoted seat", usd(P.baseMonthly) + " ÷ " + P.billable + " = " + usd(P.quotedSeat)],

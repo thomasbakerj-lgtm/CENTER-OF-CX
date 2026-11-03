@@ -79,11 +79,11 @@ export function MarketWatchView({ items = ITEMS }) {
               </li>
             ))}
           </ul>
-          <p style={K.small}>Market Watch is kept apart from the research. An item never changes a research finding, a vendor profile, a grade, a tool's result or Vendor Match. A vendor new to the market gets a researched profile only once it passes the research gate.</p>
+          <p style={K.small}>We keep Market Watch apart from the research. An item never changes a research finding, a vendor profile, a grade, a tool's result or Vendor Match. A vendor new to the market gets a researched profile only once we finish researching it.</p>
         </section>
 
         {all.length === 0 ? (
-          <section style={{ ...K.panel }}><h2 style={{ ...K.h2, margin: 0 }}>No items yet</h2><p style={K.body}>Items appear here as they are checked.</p></section>
+          <section style={{ ...K.panel }}><h2 style={{ ...K.h2, margin: 0 }}>No items yet</h2><p style={K.body}>Items appear here once we check them.</p></section>
         ) : (
           <>
             <div role="group" aria-label="Filter by source" style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>

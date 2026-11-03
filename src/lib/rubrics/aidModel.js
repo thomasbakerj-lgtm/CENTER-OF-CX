@@ -57,7 +57,7 @@ export const AID_MODEL = {
     ...benchmarksForTool("ai-deflection").map((e) => e.id),
   ].map((id) => ({ id, ...BENCHMARK_SOURCES[id] })),
   example: {
-    note: "Computed by the tool's own engine at its opening case: assumption set A, a 6-month ramp, the resolution rate sourced to an internal estimate, no marginal cost supplied, and avoided hiring as the capacity action (" + pc(H.f, 0) + " of freed capacity). The tool itself opens with no action chosen, which realizes $0.",
+    note: "Computed by the tool itself at its opening case: assumption set A, a 6-month ramp, the resolution rate sourced to an internal estimate, no marginal cost supplied, and avoided hiring as the capacity action (" + pc(H.f, 0) + " of freed capacity). The tool itself opens with no action chosen, which realizes $0.",
     inputs: [["Demand and cost", "80,000 contacts a month, $7.00 loaded; marginal not supplied"], ["Bot", "55% eligible, 65% apparent resolution, 18% repeat, 25% escalation premium"], ["Operating cost", "$8,000 platform, $2,000 QA, 40 tuning hours at $65, 20 knowledge hours at $55; no one-time cost"]],
     steps: [
       ["Marginal cost", "60% of $7.00 = $" + P.marg.toFixed(2) + ", disclosed"],

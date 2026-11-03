@@ -193,7 +193,7 @@ function gradeLines(grades, headline, label) {
   if (isVoid(grades)) {
     return [
       `${lead}Export void. No confidence grade is claimed.`,
-      `Failed invariant: ${grades.invariant}`,
+      `Failed check: ${grades.invariant}`,
       `Remedy: ${grades.remedy}`,
     ];
   }

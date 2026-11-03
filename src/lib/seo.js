@@ -28,7 +28,7 @@ export const SEO_MAP = {
   },
   "/subscribe": {
     title: `Subscribe | ${SITE}`,
-    desc: "CX technology intelligence delivered. Vendor updates, framework releases, and market analysis from The Center of CX.",
+    desc: "About once a week: what changed in contact center technology and operations, what it means for you, and where to test it against your own numbers.",
   },
   "/tools": {
     title: `Contact Center Tools | ${SITE}`,
@@ -44,11 +44,11 @@ export const SEO_MAP = {
   },
   "/vendors/iva": {
     title: `IVA and Conversational AI: 50 Vendors Profiled | ${SITE}`,
-    desc: "50 intelligent virtual agent and conversational AI vendors in 7 groups, from enterprise IVA and voicebots to helpdesk AI. Phase 1 scores withdrawn.",
+    desc: "50 intelligent virtual agent and conversational AI vendors in 7 groups, from enterprise IVA and voicebots to helpdesk AI. Earlier scores withdrawn.",
   },
   "/vendors/acd-routing": {
     title: `Routing and Orchestration: 44 Vendors Profiled | ${SITE}`,
-    desc: "44 routing and orchestration vendors, ACD included: skills-based and AI routing, Teams contact centers, failover and scale. Phase 1 scores withdrawn.",
+    desc: "44 routing and orchestration vendors, ACD included: skills-based and AI routing, Teams contact centers, failover and scale. Earlier scores withdrawn.",
   },
   "/vendors/analytics": {
     title: `CX Analytics: 41 Vendors Profiled | ${SITE}`,
@@ -56,11 +56,11 @@ export const SEO_MAP = {
   },
   "/vendors/payments": {
     title: `Payment Technology: 33 Vendors Profiled | ${SITE}`,
-    desc: "33 payment technology providers: processing, gateways, orchestration, point of sale, regional and specialty. Phase 1 scores withdrawn.",
+    desc: "33 payment technology providers: processing, gateways, orchestration, point of sale, regional and specialty. Earlier scores withdrawn.",
   },
   "/vendors/digital-engagement": {
     title: `Digital Engagement: 46 Platforms Profiled | ${SITE}`,
-    desc: "46 digital engagement platforms: live chat, messaging and WhatsApp, social customer care, AI automation and helpdesk. Phase 1 scores withdrawn.",
+    desc: "46 digital engagement platforms: live chat, messaging and WhatsApp, social customer care, AI automation and helpdesk. Earlier scores withdrawn.",
   },
   "/vendors/agent-assist": {
     title: `Agent Assist and Knowledge: 15 Vendors Profiled | ${SITE}`,
@@ -87,8 +87,8 @@ export const SEO_MAP = {
     desc: "The published model behind Governance & Operating Model: 30 decisions in 6 domains, the owner each needs, and the six finding rules and thresholds.",
   },
   "/methodology/platform-decision": {
-    title: `Platform Decision Method: The Renewal Gate | ${SITE}`,
-    desc: "The method behind Platform Decision: 35 needs across 7 layers, must-have gaps, proof requests for unknowns, the renewal gate and the notice-date clock.",
+    title: `Platform Decision Method: The Renewal Decision | ${SITE}`,
+    desc: "The method behind Platform Decision: 35 needs across 7 layers, must-have gaps, proof requests for unknowns, the renewal decision and the notice-date clock.",
   },
   "/methodology/contract-risk": {
     title: `Contract Risk Method: How Each Clause Is Rated | ${SITE}`,
@@ -208,11 +208,11 @@ export const SEO_MAP = {
   },
   "/research/iva-buyer-guide": {
     title: `IVA and Conversational AI Buyer's Guide 2026 | ${SITE}`,
-    desc: "Phase 1 edition, April 2026: 43 IVA and conversational AI vendors, architecture eras, demo questions and cost traps. Its scores and tiers are withdrawn on the site until the category is researched under the current methodology.",
+    desc: "April 2026 edition: 43 IVA and conversational AI vendors, architecture eras, demo questions and cost traps. Its scores and tiers are withdrawn on the site until we research the category in depth.",
   },
   "/research/ccaas-buyer-guide": {
     title: `CCaaS Platform Buyer's Guide 2026 | ${SITE}`,
-    desc: "Phase 1 edition, April 2026: 28 CCaaS platforms on 27 dimensions, operating-model fit and migration risk. Its scores and tiers are withdrawn on the site.",
+    desc: "April 2026 edition: 28 contact center platforms on 27 dimensions, operating-model fit and migration risk. Its scores and tiers are withdrawn on the site.",
   },
   "/human-premium": {
     title: `The Human Premium: Contact Center Careers and AI | ${SITE}`,
@@ -280,7 +280,7 @@ export const SEO_MAP = {
   },
   "/tools/vendor-match": {
     title: `Vendor Match: A CCaaS Starting List | ${SITE}`,
-    desc: "Enter your size, industry, priorities and constraints for a starting list of CCaaS platforms, with the Phase 1 method disclosed. No vendor pays to appear.",
+    desc: "Enter your size, industry, priorities and constraints for a starting list of CCaaS platforms, with its earlier method shown. No vendor pays to appear.",
   },
   "/tools/platform-decision": {
     title: `Platform Decision: Renew or Evaluate Your CCaaS | ${SITE}`,
@@ -390,7 +390,7 @@ export const SEO_MAP = {
   },
   "/research/vendor-method": {
     title: `How We Research Contact Center Vendors | ${SITE}`,
-    desc: "How vendor research is done: what a profile answers, how findings are labelled, which sources count, and how each vendor is challenged and signed off.",
+    desc: "How we research vendors: what a profile answers, how we label findings, which sources count, and how we challenge and sign off each vendor.",
   },
   "/corrections": {
     title: `How Corrections Work | Vendor Research | ${SITE}`,
@@ -406,7 +406,7 @@ export const SEO_MAP = {
   },
   "/vendors/wem-qm": {
     title: `Workforce and Quality Management: 25 Vendors Profiled | ${SITE}`,
-    desc: "25 workforce and quality management vendors (WFM, WEM, QA and auto QA) in 3 market layers, with demo checks for each. Phase 1 scores withdrawn.",
+    desc: "25 workforce and quality management vendors (WFM, WEM, QA and auto QA) in 3 market layers, with demo checks for each. Earlier scores withdrawn.",
   },
   "/industries/education": {
     title: `Education Contact Center CX | ${SITE}`,
@@ -992,7 +992,7 @@ export function resolveSeo(rawPath) {
       if (parts[0] === "ccaas" && CCAAS_INDEXED_INDUSTRIES.includes(parts[1])) {
         seo.known = true;
         seo.title = `CCaaS Research: ${vName} Contact Centers | ${SITE}`;
-        seo.desc = `What current CCaaS research says about ${vName}: every finding, product and break that bears on it, dated, with vendors A to Z.`;
+        seo.desc = `What our CCaaS research says about ${vName}: every finding, product and break that bears on it, dated, with vendors A to Z.`;
         return seo;
       }
       seo.known = false;

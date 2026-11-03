@@ -20,11 +20,11 @@ export const OFFERS = {
   },
   "renewal-evaluation": {
     tool: "platform-decision",
-    when: "The renewal gate is Run an evaluation.",
+    when: "The renewal decision is Run an evaluation.",
     title: "Want help running the evaluation?",
     body: "A consultant can help you scope the market test, write the requirements and keep the evaluation inside the time your notice period leaves.",
     topic: "Platform selection",
-    prompt: "Your current platform, the notice date, the layers the gate flagged, and who decides...",
+    prompt: "Your current platform, the notice date, the layers the decision flagged, and who decides...",
   },
   "rfp-evaluation": {
     tool: "rfp-builder",

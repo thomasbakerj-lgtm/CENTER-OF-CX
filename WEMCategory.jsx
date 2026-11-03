@@ -49,9 +49,9 @@ export default function WEMCategory() {
       {/* Demo Gates */}
       <section style={{ background: WARM, padding: "80px 28px" }}><div style={WRAP}>
         <FadeIn>
-          <span style={{ color: RED, fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", display: "block", marginBottom: 8 }}>Demo Gates</span>
-          <h2 style={{ fontFamily: FONT, fontSize: 32, fontWeight: 400, color: NAVY, margin: "0 0 12px" }}>Five gates every vendor demo must pass.</h2>
-          <p style={{ fontSize: 14, color: MUTED, maxWidth: 600, marginBottom: 24 }}>Polished demos hide weak exception handling, unexplainable AI, and hidden admin burden. These gates force vendors to prove operational readiness as well as feature existence.</p>
+          <span style={{ color: RED, fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", display: "block", marginBottom: 8 }}>Demo checks</span>
+          <h2 style={{ fontFamily: FONT, fontSize: 32, fontWeight: 400, color: NAVY, margin: "0 0 12px" }}>Five checks every vendor demo must pass.</h2>
+          <p style={{ fontSize: 14, color: MUTED, maxWidth: 600, marginBottom: 24 }}>Polished demos hide weak exception handling, unexplainable AI, and hidden admin burden. These checks force vendors to prove operational readiness as well as feature existence.</p>
         </FadeIn>
         <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
           {demoGates.map((dg, i) => (
@@ -73,8 +73,8 @@ export default function WEMCategory() {
       {/* Brutal Conclusions */}
       <section style={{ background: HOUSE.ink, padding: "80px 28px" }}><div style={WRAP}>
         <FadeIn>
-          <span style={{ color: NAVY, fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", display: "block", marginBottom: 8 }}>Phase 1 assessment</span>
-          <h2 style={{ fontFamily: FONT, fontSize: 32, fontWeight: 400, color: NAVY, margin: "0 0 24px" }}>Seven observations from the Phase 1 review.</h2>
+          <span style={{ color: NAVY, fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", display: "block", marginBottom: 8 }}>Earlier assessment</span>
+          <h2 style={{ fontFamily: FONT, fontSize: 32, fontWeight: 400, color: NAVY, margin: "0 0 24px" }}>Seven observations from our earlier assessment.</h2>
         </FadeIn>
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
           {brutalConclusions.map((bc, i) => (

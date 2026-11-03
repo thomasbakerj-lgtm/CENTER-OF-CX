@@ -91,7 +91,7 @@ export const fsSubVerticals = {
 
   "credit-unions": {
     name: "Credit Unions", parent: "Financial Services",
-    tagline: "Member-centric service with relationship depth. Smaller operations but higher trust expectations.",
+    tagline: "Personal service built on member relationships. Smaller teams, higher trust expectations.",
     intro: "Credit union contact centers serve members who chose a relationship-first institution over a megabank. The CX expectation is personal, empathetic, and community-aware. The operational challenge is delivering that experience with smaller teams, tighter budgets, and the same regulatory requirements as banks ten times their size.",
     kpis: [
       { metric: "AHT", avg: "[[fs.sv.credit-unions.aht]]", note: "Driven by relationship-depth conversations and by generalist agents covering many products" },
@@ -170,7 +170,7 @@ export const fsSubVerticals = {
   "insurance": {
     name: "Insurance (P&C, Life, Health)", parent: "Financial Services",
     tagline: "Claims, policy servicing, renewals, FNOL, underwriting support, and high-emotion journeys.",
-    intro: "Insurance contact centers operate at the intersection of complex policy logic, emotionally charged claims interactions, and regulatory compliance that varies by state and line of business. The CX challenge is guiding policyholders through processes they rarely understand, at moments when they are often distressed, while maintaining the accuracy that prevents E&O exposure.",
+    intro: "Insurance contact centers operate at the intersection of complex policy logic, emotionally charged claims interactions, and regulatory compliance that varies by state and line of business. The CX challenge is guiding policyholders through processes they rarely understand, at moments when they are often distressed, while maintaining the accuracy that prevents errors and omissions (E&O) exposure.",
     kpis: [
       { metric: "AHT", avg: "[[fs.sv.insurance.aht]]", note: "Driven by claims documentation and policy changes" },
       { metric: "FCR", avg: "[[fs.sv.insurance.fcr]]", note: "Multi-party coordination between policyholder, adjuster and third parties stands in the way of single-contact resolution" },
@@ -260,7 +260,7 @@ export const fsSubVerticals = {
         capabilities: ["Client satisfaction tracking tied to AUM retention and wallet share","Compliance surveillance for suitability and best-interest obligations","Advisor performance analytics with client outcome correlation","Client lifecycle analytics: onboarding, engagement, and attrition risk","Regulatory examination readiness dashboards"],
         vendors: "NICE, Verint, Smarsh, Global Relay", risk: "Surveillance gaps creating SEC/FINRA examination exposure",
         stack: [
-          { name: "Smarsh", role: "Communications Archival", why: "Archives every communication channel, email, chat, SMS, social, voice, for SEC 17a-4 and FINRA 3110 compliance. Lexicon-based monitoring flags potential violations before regulators find them.", href: "/vendors" },
+          { name: "Smarsh", role: "Communications Archival", why: "Archives every communication channel (email, chat, SMS, social, voice) for SEC 17a-4 and FINRA 3110 compliance. Lexicon-based monitoring flags potential violations before regulators find them.", href: "/vendors" },
           { name: "Global Relay", role: "Compliance Archival", why: "Alternative to Smarsh with strong presence in wealth management. Captures Bloomberg, Symphony, and WhatsApp alongside traditional channels. Immutable archival for examination readiness.", href: "/vendors" },
           { name: "NICE Actimize", role: "Compliance Surveillance", why: "Trade surveillance, communications monitoring, and employee compliance in one platform. Detects insider trading patterns, churning, and unsuitable recommendations.", href: "/vendors" },
         ],
@@ -405,7 +405,7 @@ export const fsSubVerticals = {
 
   "fintech-neobanks": {
     name: "Fintech & Neobanks", parent: "Financial Services",
-    tagline: "Digital-native service models with app-first support and instant resolution expectations.",
+    tagline: "App-first support for customers who expect instant answers.",
     intro: "Fintech and neobank contact centers are born digital. Customers chose these institutions specifically because they promise faster, simpler, and more transparent financial experiences. The CX bar is set by the app experience, and the contact center must match that speed and simplicity.",
     kpis: [
       { metric: "AHT", avg: "[[fs.sv.fintech-neobanks.aht]]", note: "Driven by a simpler product set and in-app context available to the agent" },
@@ -448,7 +448,7 @@ export const fsSubVerticals = {
           { name: "Intercom Fin", role: "AI Agent", why: "Trained on your help center and knowledge base. Resolves common questions without custom bot building. Falls back to human agents for complex issues with full conversation context.", href: "/vendors/iva" },
           { name: "Ada", role: "AI Customer Service", why: "No-code bot builder with strong fintech deployments. Handles card management, dispute filing, and account verification. Pre-built financial services content library.", href: "/vendors/iva" },
         ],
-        pitfall: "Fintech bots must execute actions as well as provide information. A user who asks 'freeze my card' expects the card to be frozen. A link to a help article about how to freeze their card in the app. If your bot can't call the card management API to freeze the card in real-time, it's not a bot: it's a search engine with a chat interface."
+        pitfall: "Fintech bots must execute actions as well as provide information. A user who asks 'freeze my card' expects the card to be frozen. A link to a help article about freezing the card in the app falls short. If your bot can't call the card management API to freeze the card in real-time, it's not a bot: it's a search engine with a chat interface."
       },
       { layer: 3, name: "Policy & Guardrails",
         capabilities: ["Charter/license compliance appropriate to entity type","BSA/AML controls meeting regulatory expectations","Strong customer authentication for account changes and high-value transfers","Dispute resolution compliance meeting Reg E timelines","Data privacy controls meeting state-by-state requirements"],

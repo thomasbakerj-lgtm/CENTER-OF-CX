@@ -170,7 +170,7 @@ export const CHANGELOG = [
   },
   {
     date: "2026-09-25", methods: ["staffing-calculator"], version: "1.0",
-    title: "Staffing: solver and the WFM rail",
+    title: "Staffing: a corrected agent search, and inputs from the other workforce tools",
     changes: [
       "The agent search starts at the first whole count above the load. On a fractional load the tool had reported one agent more than needed: 1,297 of 20,000 random queues now need one agent fewer, about 0.2% at 70 to 90% occupancy targets.",
       "Staffing reads handle time from AHT Decomposition, shrinkage from the Shrinkage Planner and an occupancy ceiling from Occupancy Risk, each badged with its source and graded by where it came from.",

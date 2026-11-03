@@ -141,7 +141,7 @@ function NotFound() {
     <div style={{ minHeight: "60vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "160px 28px 80px", textAlign: "center", fontFamily: FONT }}>
       <h1 style={{ fontFamily: FONT, fontSize: 40, fontWeight: 600, color: HOUSE.mist, margin: "0 0 12px" }}>Page not found.</h1>
       <p style={{ fontSize: 16, color: HOUSE.body, maxWidth: 520, lineHeight: 1.7, margin: "0 0 28px" }}>
-        That address does not exist on The Center of CX. The tools, vendor profiles, and research are all reachable from the links below.
+        We could not find a page at that address. The tools, vendor profiles and research are all one step away from here.
       </p>
       <div style={{ display: "flex", gap: 12, flexWrap: "wrap", justifyContent: "center" }}>
         <a href="/tools" style={{ ...NF_LINK, background: HOUSE.action, color: HOUSE.paper, fontWeight: 600 }}>Browse the tools</a>

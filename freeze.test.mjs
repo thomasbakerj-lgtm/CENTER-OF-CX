@@ -153,7 +153,7 @@ section("7. S23: the seven other categories, their profiles and the industry pag
   ok("the status registry reads CCaaS from the corpus and every other category as Phase 1", RS.researchStatus("ccaas", "genesys") === "complete" && RS.researchStatus("ccaas", "goto") === "phase1" && Object.keys(RS.PHASE1_CATEGORIES).every((c) => RS.researchStatus(c, "anything") === "phase1"));
   ok("seven categories are named, CCaaS is not among them", Object.keys(RS.PHASE1_CATEGORIES).length === 7 && !("ccaas" in RS.PHASE1_CATEGORIES));
   const L = RS.phase1Label();
-  ok("one Phase 1 label, saying scores, tiers and rankings are withdrawn", L.status === "phase1" && L.short === "Phase 1 context" && /scores, tiers and rankings are withdrawn/.test(L.text) && noDash(L.text));
+  ok("one Phase 1 label, saying scores, tiers and rankings are withdrawn", L.status === "phase1" && L.short === "Earlier assessment" && /scores, tiers and rankings are withdrawn/.test(L.text) && noDash(L.text));
   ok("the directory order is by name", [{ name: "b" }, { name: "A" }, { name: "c" }].sort(RS.byName).map((x) => x.name).join("") === "Abc");
   const strip = (x) => x.replace(/\/\*[\s\S]*?\*\//g, "").replace(/(^|[^:])\/\/.*$/gm, "$1");
   const DIR = strip(readFileSync("./src/lib/Phase1Directory.jsx", "utf8"));
@@ -210,7 +210,7 @@ section("8. Audit 30 Sep: the hub and category pages promise only what the profi
   /* Advisory describes a paid service, so its own words stay; it no longer offers scored shortlists. Phase 1 profiles
      label their weaknesses as the Phase 1 assessment. */
   ok("the help page offers no scored shortlist", !/scored (vendor )?shortlist/i.test(R("Contact.jsx")));
-  ok("Phase 1 profiles label their assessment as Phase 1", !/label="Honest assessment"/.test(R("VendorProfile.jsx")) && (R("VendorProfile.jsx").match(/label="Phase 1 assessment"/g) || []).length === 2);
+  ok("Phase 1 profiles label their assessment as Phase 1", !/label="Honest assessment"/.test(R("VendorProfile.jsx")) && (R("VendorProfile.jsx").match(/label="Earlier assessment"/g) || []).length === 2);
   ok("the rule fires on the retired wording", RETIRED.test("Proprietary rubrics built for operational reality.") && RETIRED.test("We can help you build a scored shortlist."));
   ok("the hub's category count is derived", /String\(CATEGORY_COUNT\)/.test(V) && !/\{ n: "8", l: "Vendor categories" \}/.test(V) && !/Nine categories/.test(V));
   ok("the hub says where the adjacent profiles sit, so the category counts add up", /VENDOR_PROFILE_COUNT - ADJACENT_PROFILE_COUNT/.test(V));
@@ -238,7 +238,7 @@ section("9. Audit 30 Sep, batch 1: no withdrawn score wording on profiles, offer
   if (hits.length) console.log("   ", hits.join("\n    "));
   ok("the profile rule fires on the retired wording", [...'profile: "IVA-first platform. Strongest AI and observability scores in tier."'.matchAll(FIELD)].some((m) => SCORE.test(m[1])));
   const VP = R("VendorProfile.jsx");
-  ok("profiles no longer ask readers to score the vendor, or promise attributed reviews", !/Score this vendor|Every review is attributed/.test(VP) && /reviews are not published/.test(VP));
+  ok("profiles no longer ask readers to score the vendor, promise attributed reviews, or publish one without consent", !/Score this vendor|Every review is attributed/.test(VP) && /We publish a review only if you agree/.test(VP) && /name="publish_consent" type="checkbox"/.test(VP));
   ok("the help page carries no scored evaluation or competitive context", !/scored evaluation|competitive context/i.test(R("Contact.jsx")));
   ok("the hub's tiles are counts the site can show", !/Decision domains/.test(R("Vendors.jsx")) && /String\(Object\.keys\(CCAAS_RESEARCH\.complete\)\.length\), l: "Researched platforms"/.test(R("Vendors.jsx")));
   const G = R("GatedReport.jsx");

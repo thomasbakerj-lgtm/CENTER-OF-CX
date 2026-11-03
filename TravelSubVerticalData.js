@@ -81,7 +81,7 @@ export const travelSubVerticals = {
       },
       { layer: 3, name: "Policy & Guardrails", capabilities: ["PCI compliance for credit card guarantees and payment processing","Cancellation policy enforcement varying by rate type, channel, and loyalty tier","ADA/accessibility compliance for accommodation requests","Guest data privacy (GDPR for EU guests, CCPA for California)","OTA rate parity and commission management compliance"],
         vendors: "PCI compliance, custom policy logic", risk: "Inconsistent cancellation policy application creating guest disputes",
-        stack: [{ name: "PMS policy engine", role: "Rate & Policy Rules", why: "The PMS (OPERA, Mews, Cloudbeds) holds the rate and cancellation rules. The agent desktop must surface these rules clearly, is this rate refundable? Is the guest within the cancellation window? What's the penalty?", href: "/vendors" }],
+        stack: [{ name: "PMS policy engine", role: "Rate & Policy Rules", why: "The PMS (OPERA, Mews, Cloudbeds) holds the rate and cancellation rules. The agent desktop must surface these rules clearly. Is this rate refundable? Is the guest within the cancellation window? What's the penalty?", href: "/vendors" }],
         pitfall: "Hotels sell rooms through many channels (direct website, OTAs, GDS, wholesalers, corporate programs): each with different cancellation policies, rate restrictions, and commission rules. An agent who can't quickly determine which policy applies to this specific booking will either apply the wrong policy (creating financial loss) or default to 'let me check and call you back' (destroying the guest experience). Surface the booking channel and policy in the agent desktop, where the agent sees it without digging through the reservation notes."
       },
       { layer: 2, name: "Workflow Execution", capabilities: ["Reservation creation and modification workflow with availability and pricing","Guest request workflow routing to housekeeping, F&B, or engineering","Service recovery workflow with compensation authority and tracking","Group block management workflow with room list and billing coordination","Loyalty enrollment, tier upgrade, and benefit delivery workflow"],
@@ -100,7 +100,7 @@ export const travelSubVerticals = {
   "otas": {
     name: "Online Travel Agencies", parent: "Travel & Hospitality",
     tagline: "Multi-supplier booking support, price disputes, cancellation policies, and trip coordination.",
-    intro: "OTA contact centers are intermediaries: they don't operate the flights, hotels, or cars they sell. Every support interaction involves at least two parties (the OTA and the supplier) and often three (OTA, airline, hotel). The CX challenge is resolving problems in systems the OTA doesn't control, with policies the OTA didn't set, for customers who hold the OTA responsible regardless.",
+    intro: "Online travel agency (OTA) contact centers are intermediaries: they don't operate the flights, hotels, or cars they sell. Every support interaction involves at least two parties (the OTA and the supplier) and often three (OTA, airline, hotel). The CX challenge is resolving problems in systems the OTA doesn't control, with policies the OTA didn't set, for customers who hold the OTA responsible regardless.",
     kpis: [
       { metric: "AHT", avg: "[[trv.sv.otas.aht]]", note: "Multi-supplier coordination drives handle time" },
       { metric: "FCR", avg: "[[trv.sv.otas.fcr]]", note: "Resolution often waits on a supplier the agent does not control" },

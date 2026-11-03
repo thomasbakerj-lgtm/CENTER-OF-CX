@@ -40,7 +40,7 @@ section("1. The whole page");
 const html = render(), t = text(html);
 ok("one h1", (html.match(/<h1[\s>]/g) || []).length === 1);
 ok("no bad text", !/\[object Object\]|>\s*(null|undefined|NaN)\s*</.test(html) && !/\b(NaN|undefined|Infinity)\b/.test(t.split("Avaya Infinity").join("")));
-ok("states that Phase 1 scores are withdrawn", /Phase 1 scores and tiers are withdrawn/.test(t));
+ok("states that Phase 1 scores are withdrawn", /Scores and tiers from our earlier assessment are withdrawn/.test(t));
 ok("states where the research stands", t.includes(`${Object.keys(CCAAS_RESEARCH.complete).length} of ${core.length} core platforms researched; ${core.length - Object.keys(CCAAS_RESEARCH.complete).length} not yet`)
   && t.includes(`${INDEX.classes.length} peer groups`) && (INDEX.classes.some((c) => c.draft) ? /of them provisional/.test(t) : !/of them provisional/.test(t))
   && t.includes(`between ${fmtDate("2026-09-19")} and ${fmtDate("2026-09-24")}`) && /ratings stay locked/i.test(t));
@@ -58,15 +58,15 @@ for (const c of INDEX.classes) {
   const only = render({ initialClass: c.id }), ot = text(only);
   const others = INDEX.classes.filter((x) => x.id !== c.id).flatMap((x) => x.vendors);
   ok(`${c.id} filter shows exactly its vendors`, c.vendors.every((v) => only.includes(`href="/vendors/${SLUG[v.id]}"`)) && others.every((v) => !only.includes(`href="/vendors/${SLUG[v.id]}"`)));
-  ok(`${c.id} filter shows its research class word for word`, ot.includes(`Research class: ${c.name}. ${c.definition}`));
-  let at = ot.indexOf(`Research class: ${c.name}`);
+  ok(`${c.id} filter shows its research class word for word`, ot.includes(`The research calls this group ${c.name}. ${c.definition}`));
+  let at = ot.indexOf(`The research calls this group ${c.name}`);
   for (const v of c.vendors) {
     seen.push(v.id);
     const i = ot.indexOf(v.name, at);
     ok(`${v.name}: in order inside ${c.id}`, i > at); at = i;
     const block = ot.slice(i, i + 900);
-    ok(`${v.name}: best-when statement or its absence`, v.bestWhen ? block.includes(norm(v.bestWhen.statement)) : block.includes("No best-when statement is published"));
-    ok(`${v.name}: compared on and validated`, block.includes(`Compared on: ${PLAIN[c.id].compared}`) && block.includes(`Research validated ${fmtDate(v.validated)}`));
+    ok(`${v.name}: best-when statement or its absence`, v.bestWhen ? block.includes(norm(v.bestWhen.statement)) : block.includes("We have not yet published a strong-fit statement"));
+    ok(`${v.name}: compared on and validated`, block.includes(`Compared on: ${PLAIN[c.id].compared}`) && block.includes(`Research checked ${fmtDate(v.validated)}`));
     ok(`${v.name}: validation date equals the registry`, v.validated === CCAAS_RESEARCH.complete[SLUG[v.id]].validated);
   }
 }
@@ -93,7 +93,7 @@ walk(INDEX);
 strings.sort((a, b) => b.length - a.length);
 let own = t;
 for (const x of strings) own = own.split(x).join(" ");
-own = own.replace("Phase 1 scores and tiers are withdrawn", "").replace("nothing on this page ranks them", "").split("no quality grade").join("").split("never a quality grade").join("").split("carries no grade").join("");
+own = own.replace("Scores and tiers from our earlier assessment are withdrawn", "").replace("nothing on this page ranks them", "").split("no quality grade").join("").split("never a quality grade").join("").split("carries no grade").join("");
 ok(`no score, rank, tier, leader or grade word [${(own.match(/.{0,30}\b(scores?|rank\w*|tiers?|leader\w*|grade|top \d+|best-in)\b.{0,20}/i) || [""])[0]}]`, !/\b(scores?|rank\w*|tiers?|leader\w*|grade|top \d+|best-in)\b/i.test(own));
 ok("no count of states", !/\b\d+\s+(findings?|claims?)\b/i.test(own));
 ok("no weakness word", !/\bweak/i.test(own.replace("It is never counted as a weakness", "")));
@@ -125,9 +125,9 @@ section("4b. Tags: what each vendor sells and the sizes it is sold to");
   ok("every caveat renders under its vendor", INDEX.classes.every((c) => c.vendors.every((v) => tagsFor(v.id).notes.every((n) => t.includes(`${n.tag}: ${n.text}`)))));
   ok("Avaya's UCaaS tag carries its US public sector scope in the label", t.includes("UCaaS + CCaaS (US public sector)"));
   const hp = renderToString(React.createElement(Page, { initialSize: "SMB", initialClass: (INDEX.classes.find((c) => c.vendors.every((v) => !tagsFor(v.id).sizes.some((x) => x.size === "SMB"))) || INDEX.classes[0]).id }));
-  ok("a class with no match after filtering says so", text(hp).includes("No researched vendor in this class matches these filters") || vendorsIn(hp).length > 0);
+  ok("a class with no match after filtering says so", text(hp).includes("No researched vendor in this group matches these filters") || vendorsIn(hp).length > 0);
   ok("filters never reorder: a filtered class keeps A to Z", INDEX.classes.every((c) => { const h = text(renderToString(React.createElement(Page, { initialClass: c.id, initialSize: "Midmarket" }))); const names = c.vendors.filter((v) => tagsFor(v.id).sizes.some((x) => x.size === "Midmarket")).map((v) => v.name); let at = 0; return names.every((n) => { const k = h.indexOf(n, at); if (k < 0) return false; at = k; return true; }); }));
-  ok("the not yet researched carry the Phase 1 description, labelled", core.filter((v) => ccaasResearchStatus(v.slug) !== "complete" && v.segment).every((v) => t.includes(`Earlier Phase 1 description: ${v.segment}`)));
+  ok("the not yet researched carry the Phase 1 description, labelled", core.filter((v) => ccaasResearchStatus(v.slug) !== "complete" && v.segment).every((v) => t.includes(`Our earlier description: ${v.segment}`)));
 }
 
 section("5. Introductions, links and tokens");

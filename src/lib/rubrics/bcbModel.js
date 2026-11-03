@@ -56,7 +56,7 @@ export const BCB_MODEL = {
     "market.wage.agent", "load.benefits",
   ].map((id) => ({ id, ...BENCHMARK_SOURCES[id] })),
   example: {
-    note: "Computed by the tool's own engine at its opening case: the expected stance, phasing on (9 months migration, 6 months ramp) and no capacity action, which is how the tool opens. The last step turns on hiring avoidance (" + Math.round(MECH.hiring.f * 100) + "%) to show what realization does.",
+    note: "Computed by the tool itself at its opening case: the expected stance, phasing on (9 months migration, 6 months ramp) and no capacity action, which is how the tool opens. The last step turns on hiring avoidance (" + Math.round(MECH.hiring.f * 100) + "%) to show what realization does.",
     inputs: [["Operation", "200 agents at $" + b("market.wage.agent") + " an hour with 30% benefits, 120,000 contacts a month, AHT 420 seconds with 45 after-call, FCR 72%, attrition 35%"], ["Targets", "containment 15%, handle time 12%, ACW 30%, FCR +8 points, attrition down 20%"], ["Investment", "$750,000 implementation, $135 per agent a month"]],
     steps: [
       ["Loaded and marginal", "$" + P.loaded.toFixed(2) + " an hour loaded; $" + P.marginal.toFixed(2) + " marginal per contact at the savings rate"],

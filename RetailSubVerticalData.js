@@ -5,7 +5,7 @@ export const retailSubVerticals = {
   "ecommerce-dtc": {
     name: "eCommerce / DTC", parent: "Retail & eCommerce",
     tagline: "Order status, returns, shipping issues, payment disputes, and cart abandonment recovery.",
-    intro: "DTC eCommerce contact centers compete on speed. Customers asking where an order is, how to return it, or why a payment failed expect answers in minutes. The operating challenge is clearing heavy transactional volume at low handle time while spotting and escalating the smaller share of contacts that carry real revenue or retention risk.",
+    intro: "Direct-to-consumer (DTC) eCommerce contact centers compete on speed. Customers asking where an order is, how to return it, or why a payment failed expect answers in minutes. The operating challenge is clearing heavy transactional volume at low handle time while spotting and escalating the smaller share of contacts that carry real revenue or retention risk.",
     kpis: [
       { metric: "AHT", avg: "[[retail.sv.ecommerce-dtc.aht]]", note: "Driven by the share of transactional contacts (order status, returns)" },
       { metric: "FCR", avg: "[[retail.sv.ecommerce-dtc.fcr]]", note: "Moves with product set complexity and whether agents can act in the order system" },
@@ -287,7 +287,7 @@ export const retailSubVerticals = {
         capabilities: ["Marketplace platform data (listings, orders, seller accounts, buyer accounts)","Payment platform integration (transactions, payouts, holds, disputes)","Seller performance data (ratings, fulfillment metrics, policy violations)","Buyer purchase and dispute history","Product catalog and listing compliance data"],
         vendors: "Custom platform, Stripe Connect, Mirakl, Sharetribe", risk: "Buyer and seller data in separate systems with no unified view",
         stack: [{ name: "Mirakl", role: "Marketplace Platform", why: "Enterprise marketplace platform powering multi-seller operations. Seller management, catalog integration, and order routing. The operational backbone for enterprise marketplace CX.", href: "/vendors" }],
-        pitfall: "Marketplace agents need to see both sides of every transaction, the buyer's history AND the seller's history, to make fair dispute decisions. Many marketplace support tools show one side at a time, forcing agents to switch between buyer view and seller view. Build a dispute resolution interface that shows both parties' evidence, history, and account health side by side."
+        pitfall: "Marketplace agents need to see both sides of every transaction (the buyer's history and the seller's history) to make fair dispute decisions. Many marketplace support tools show one side at a time, forcing agents to switch between buyer view and seller view. Build a dispute resolution interface that shows both parties' evidence, history, and account health side by side."
       },
     ],
   },

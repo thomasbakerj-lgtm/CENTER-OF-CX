@@ -154,7 +154,7 @@ function Erlang() {
       <Formulas items={ERLANG.formulas} heading="The formulas" />
       <section aria-labelledby="worked" style={K.panel}>
         <h2 id="worked" style={K.h2}>A worked example</h2>
-        <p style={K.body}>A load of {c.load} Erlangs, for example 200 calls an hour at {c.aht} seconds each, with a target of answering within {c.threshold} seconds. Each row adds one agent. Computed by the same engine the Schedule Adherence tool runs.</p>
+        <p style={K.body}>A load of {c.load} Erlangs, for example 200 calls an hour at {c.aht} seconds each, with a target of answering within {c.threshold} seconds. Each row adds one agent. We compute it with the same math the Schedule Adherence tool runs.</p>
         <div tabIndex={0} role="region" aria-label="Erlang C worked example" style={{ overflowX: "auto", marginTop: 10 }}>
           <table style={{ borderCollapse: "collapse", width: "100%", minWidth: 480 }}>
             <thead><tr>{["Agents", "Chance a caller waits", `Answered in ${c.threshold} s`, "Average wait", "Occupancy"].map((h) => <th key={h} scope="col" style={{ ...K.strong, padding: "8px 10px", textAlign: "right", fontSize: 14 }}>{h}</th>)}</tr></thead>
@@ -173,7 +173,7 @@ function Erlang() {
       <section aria-labelledby="checked" style={K.panel}>
         <h2 id="checked" style={K.h2}>Checked against</h2>
         <ul style={list}>{fx.map((f) => <li key={f.id} style={K.body}><strong style={K.strong}>{f.title}.</strong> {f.case} Expected: {f.expected}. {FIXTURE_KIND[f.kind]}; {f.source}</li>)}</ul>
-        <p style={{ ...K.small, marginTop: 8 }}>Our test suite computes each case with the shipped engine and fails if any answer differs.</p>
+        <p style={{ ...K.small, marginTop: 8 }}>Our automated tests compute each case with the same math the tools run, and fail if any answer differs.</p>
       </section>
       <section aria-labelledby="limits" style={K.panel}>
         <h2 id="limits" style={K.h2}>Where it falls short</h2>

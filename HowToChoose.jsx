@@ -49,7 +49,7 @@ const CATEGORIES = [
   { id: "vendors", label: "Vendors, renewals and contracts", color: ELECTRIC, desc: "From the renewal question to a signed contract",
     tools: [
       { title: "Platform Decision", method: "platform-decision", desc: "Renew, renew with conditions, add a specialist or run an evaluation, and whether there is time before your notice date.", href: "/tools/platform-decision" },
-      { title: "Vendor Match Engine", desc: "A starting list of CCaaS vendors from your environment and priorities, on the Phase 1 model with its method shown.", href: "/tools/vendor-match" },
+      { title: "Vendor Match Engine", desc: "A starting list of CCaaS vendors from your environment and priorities, built on our earlier vendor model, with its method shown.", href: "/tools/vendor-match" },
       { title: "RFP Requirement Builder", method: "rfp-builder", desc: "Weighted requirements by layer, then vendor responses scored: who meets every must-have and what to verify in the demo.", href: "/tools/rfp-builder" },
       { title: "License Bundle Gap Checker", method: "license-gap", desc: "The quoted seat price against what the platform costs with add-ons, usage fees, commits and renewal uplift.", href: "/tools/license-gap" },
       { title: "Contract Risk Scanner", method: "contract-risk", desc: "13 contract clauses read against published severities, with the position to ask for on every flag.", href: "/tools/contract-risk" },

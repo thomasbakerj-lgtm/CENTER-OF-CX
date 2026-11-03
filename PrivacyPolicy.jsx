@@ -19,7 +19,7 @@ const L = ({ items }) => <ul style={{ margin: "0 0 14px", paddingLeft: 20, displ
 const A = ({ href, children }) => <a href={href} style={{ color: LINK, fontWeight: 600, textDecoration: "underline", textUnderlineOffset: 3 }}>{children}</a>;
 const B = ({ children }) => <strong style={{ color: HOUSE.mist, fontWeight: 600 }}>{children}</strong>;
 
-export const PRIVACY_UPDATED = "14 October 2026";
+export const PRIVACY_UPDATED = "3 November 2026";
 
 /* Every form that sends personal information, as the policy names it. privacy.test.mjs holds this list to the code. */
 export const FORMS = [
@@ -30,7 +30,7 @@ export const FORMS = [
   { what: "Report copies and review requests from a tool", fields: "your email and, as you choose, your name, company and role, and the tool's inputs and results you choose to send", endpoint: "maqlvwne" },
   { what: "Industry stack framework reviews", fields: "your email, name and company, and the stack profile you marked", endpoint: "maqlvwne" },
   { what: "Buyer guide downloads", fields: "name, job title and email", endpoint: "mgorkboe, myklwvjy, xojydbwe" },
-  { what: "Vendor reviews you submit on a profile", fields: "your name, email, role, company size, tenure with the vendor and your review", endpoint: "xjgplvkz" },
+  { what: "Vendor reviews you submit on a profile", fields: "your name, email, role, company size, tenure with the vendor, your review, and whether you agree to its publication", endpoint: "xjgplvkz" },
   { what: "Newsletter sign-ups", fields: "email address", endpoint: "xnjolywk" },
   { what: "Ideas you send from the Research and perspectives pages", fields: "your idea and, if you choose, your role and email", endpoint: "xvzvdnry" },
 ];
@@ -66,7 +66,7 @@ export default function PrivacyPolicy() {
           <S id="send">Information you choose to send us</S>
           <P>Most tools and pages do not require an email address. For specific purposes that you start, such as downloading a guide or a report, requesting a report copy or a review, asking for a vendor introduction, a demo or a consultation, reporting a research error, proposing a contribution, submitting a vendor review or subscribing to our newsletter, we may ask for, and may require before we fulfil the request, a valid email address and other contact details relevant to that purpose, such as your name, job title, company, role and, where the request calls for it, a telephone number. You may decline; if you do, we may not be able to complete that request. Today these forms collect:</P>
           <L items={FORMS.map((f) => <><B>{f.what}:</B> {f.fields}.</>)} />
-          <P><B>Vendor reviews.</B> Reviews you submit are not published on the Site today; they are read by us. If we begin publishing reviews, we will say on the form, before you submit, which fields will be public and which are kept only for verification, moderation or contact. Your email address is never published.</P>
+          <P><B>Vendor reviews.</B> We read every review you submit and check it before it informs our research. Until a public source confirms it, a review counts as one person's perspective. We publish a review only if you tick the box on the form that allows it, and then only the review text and your first name and last initial. Your email address is never published.</P>
           <P><B>Please do not send sensitive information.</B> Do not submit Social Security or other government identification numbers, financial account or payment card details, passwords, medical or health information or other highly sensitive information through our forms or tools, and do not send confidential information or personal information about another person unless you are authorised to share it.</P>
 
           <S id="visit">Information collected when you visit</S>

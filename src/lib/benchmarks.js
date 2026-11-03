@@ -223,7 +223,7 @@ const aidEntries = {
   "aid.read.margNearLoaded": aLine(0.85, "share of loaded cost", "Marginal cost at or above this share of loaded usually means loaded cost was entered twice. Disclosed, and holds completeness Directional."),
   "aid.read.eligibleRare": aLine(90, "percent of total demand", "Eligibility at or above this is rare outside narrow scopes. Disclosed on the page. Framing only."),
   "aid.read.resolutionRare": aLine(80, "percent of AI-involved conversations", "Apparent resolution at or above this is uncommon outside narrow FAQ scopes. Disclosed on the page. Framing only."),
-  "aid.read.foundationFloor": aLine(0.35, "share of total demand", "Eligibility below this routes the verdict to fixing the foundation. A property of the answer. It reaches no confidence axis by doctrine."),
+  "aid.read.foundationFloor": aLine(0.35, "share of total demand", "Eligibility below this routes the verdict to fixing the foundation. A property of the answer. It reaches no confidence axis."),
   "aid.guard.botNearFree": aLine(0.01, "USD operating cost per bot-attempted contact", "Operating cost at or below one cent per attempted conversation makes the program look costless and drives break-even toward zero. Set below the channel fee line because this cost is a flat monthly spend spread across volume, and a real program at scale runs a few cents. Holds completeness Directional."),
 };
 
@@ -273,7 +273,7 @@ const fcrEntries = {
   "fcr.sens.aggStep": fHeur(0.4, "multiple of a first contact", "Step above the entered multiplier for the aggressive sensitivity row. Display only."),
   "fcr.read.margNearLoaded": fLine(0.85, "share of loaded cost", "Marginal cost at or above this share of loaded usually means loaded cost was entered as marginal. Disclosed, and holds completeness Directional."),
   "fcr.read.margFarBelow": fLine(0.35, "share of loaded cost", "Marginal cost at or below this share of loaded is outside the usual 50 to 75 percent range and burden scales with it. Disclosed, and holds completeness Directional."),
-  "fcr.read.multHigh": fLine(2.5, "multiple of a first contact", "A repeat multiplier above this sits above the planning range of 1.0x to 2.0x, a threshold set by this platform. Disclosed, and holds completeness Directional until validated."),
+  "fcr.read.multHigh": fLine(2.5, "multiple of a first contact", "A repeat multiplier above this sits above the planning range of 1.0x to 2.0x, a threshold we set. Disclosed, and holds completeness Directional until validated."),
   "fcr.read.multElevated": fLine(2, "multiple of a first contact", "A repeat multiplier above this is elevated and noted on the page. Display only. It reaches no confidence axis."),
   "fcr.read.measuredMax": fLine(0.6, "share of volume", "A measured repeat share above this is outside the plausible range. Disclosed, and holds completeness Directional."),
   "fcr.read.windowShort": fLine(7, "days", "An internal callback window shorter than this undercounts return contacts and reads FCR high. Disclosed, and holds completeness Directional."),
@@ -336,7 +336,7 @@ const tLine = (value, unit, rationale) => ({ tool: TCO, kind: "threshold", value
 const tWage = (value, label) => tHeur(value, "USD per hour", `Opening agent wage for the ${label} profile. An internal planning value, not a published median. The platform's sourced wage benchmark is market.wage.agent. A wage still at this value grades cost evidence Directional.`);
 
 const tWageBls = (value, industry, label) => ({ tool: TCO, kind: "market", value, unit: "USD per hour",
-  source: `US Bureau of Labor Statistics, Occupational Outlook Handbook, Customer Service Representatives, pay by industry: median hourly wage in ${industry}, May 2025 (TB research, 28 Sep 2026).`,
+  source: `US Bureau of Labor Statistics, Occupational Outlook Handbook, Customer Service Representatives, pay by industry: median hourly wage in ${industry}, May 2025 (verified by The Center of CX, 28 Sep 2026).`,
   url: "https://www.bls.gov/ooh/office-and-administrative-support/customer-service-representatives.htm", reviewed: "2026-09-29", version: 2,
   rationale: `Opening agent wage for the ${label} profile: the BLS May 2025 median for customer service representatives in ${industry}. A published median rather than the reader's own pay, so a wage still at this value grades cost evidence Directional.` });
 
@@ -447,7 +447,7 @@ const attritionEntries = {
   "attrition.time.workdaysMonth": atHeur(22, "working days a month", "Converts ramp months to hours: 22 days of 8 hours."),
   "attrition.time.hoursDay": atHeur(8, "hours a day", "A full-time shift."),
   "attrition.time.daysWeek": atHeur(5, "days a week", "Converts training and nesting weeks to days."),
-  "attrition.band.low": atLine(40, "percent of salary", "Lower edge of the planning band for a frontline replacement. All-in cost inside 40 to 60 percent of salary lets completeness reach Finance-grade. A planning check set by this platform, with no published study behind it."),
+  "attrition.band.low": atLine(40, "percent of salary", "Lower edge of the planning band for a frontline replacement. All-in cost inside 40 to 60 percent of salary lets completeness reach Finance-grade. A planning check we set, with no published study behind it."),
   "attrition.band.high": atLine(60, "percent of salary", "Upper edge of the planning band. Above it the page flags the case to validate; completeness holds Directional."),
   "attrition.band.floor": atLine(30, "percent of salary", "Below this the cost basis sits outside the plausible range and completeness holds Directional. Between it and the band, Planning-grade."),
   "attrition.band.ceiling": atLine(100, "percent of salary", "Above this the case reads as manager tier, implausible for a frontline agent; a high flag holds completeness Directional."),
@@ -605,7 +605,7 @@ export const BENCHMARK_SOURCES = {
   "channel.plan.rampLoss": chHeur(0.3, "share of loaded time lost in ramp", "Productivity lost while a new chat agent ramps, priced into transition cost."),
   "channel.read.implausibleDeptAht": chLine(2, "minutes", "Displaced contacts implied to average under this handle time mean the complexity curve is too severe for the volume moved. Disclosed, and holds completeness Directional."),
   "channel.guard.botNearFree": chLine(0.1, "USD per bot contact", "A bot fee at or below this, with bot volume shifted, makes any shift look costless and drives break-even toward zero. Disclosed, and holds completeness Directional."),
-  "channel.read.breakEvenFloor": chLine(1, "percent resolution", "A break-even below this reads as a shift profitable at any resolution. Framing only. It is a property of the answer and reaches no confidence axis by doctrine 5.5."),
+  "channel.read.breakEvenFloor": chLine(1, "percent resolution", "A break-even below this reads as a shift profitable at any resolution. Framing only. It is a property of the answer and reaches no confidence axis."),
 
   ...aidEntries,
   ...fcrEntries,

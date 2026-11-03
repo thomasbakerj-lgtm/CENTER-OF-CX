@@ -35,7 +35,7 @@ const INDEX = JSON.parse(readFileSync("./src/data/research/ccaas/category.json",
 console.log("\n1. One page, counts from the data");
 ok("one h1", (html.match(/<h1[\s>]/g) || []).length === 1);
 ok("CCaaS researched of total", t.includes(`${CCAAS_COMPLETE_COUNT} of ${CATEGORIES.ccaas.vendorCount} researched`));
-ok("classes, calibrated and the validation window", t.includes(`${INDEX.classes.length} competitive classes (${INDEX.classes.filter((c) => !c.draft).length} calibrated)`) && t.includes(`between ${longDate(INDEX.validatedFrom)} and ${longDate(INDEX.validatedTo)}`));
+ok("classes, calibrated and the validation window", t.includes(`${INDEX.classes.length} peer groups (${INDEX.classes.filter((c) => !c.draft).length} ready to compare)`) && t.includes(`between ${longDate(INDEX.validatedFrom)} and ${longDate(INDEX.validatedTo)}`));
 ok("the next vendor", !CCAAS_RESEARCH.next || t.includes(`Next: ${vendorDisplayName(CCAAS_RESEARCH.next)}.`));
 ok("methods, industries and segments", t.includes(`${METHOD_COUNT} tools publish their method`) && t.includes(`${INDUSTRY_COUNT} industries and ${SEGMENT_COUNT} segments`));
 ok("the three indexed CCaaS by industry pages", CCAAS_INDEXED_INDUSTRIES.every((v) => html.includes(`href="/vendors/ccaas/${v}"`) && t.includes(VERTICALS[v].name)));
@@ -43,7 +43,7 @@ ok("the three indexed CCaaS by industry pages", CCAAS_INDEXED_INDUSTRIES.every((
 console.log("\n2. Research order and status");
 const order = ["ccaas", "iva", "agent-assist", "wem-qm", "analytics", "acd-routing", "digital-engagement", "payments"];
 ok("the section 13 order", m.exports.RESEARCH_ORDER.join() === order.join() && order.every((s, i) => !i || html.indexOf(`href="${CATEGORIES[s].page}"`) > html.indexOf(`href="${CATEGORIES[order[i - 1]].page}"`)));
-ok("only CCaaS claims current research", (t.match(/current research published/g) || []).length === 1 && (t.match(/Phase 1 context, listed A to Z/g) || []).length === order.length - 1);
+ok("only CCaaS claims current research", (t.match(/researched in depth, findings published/g) || []).length === 1 && (t.match(/earlier assessment, listed A to Z/g) || []).length === order.length - 1);
 
 console.log("\n3. Every internal link resolves");
 const APP = readFileSync("./App.jsx", "utf8");
@@ -61,7 +61,7 @@ ok("the three newest items, linked by id", latest.every((it) => t.includes(it.he
 ok("perspectives count or an honest invitation", CT.PIECES.length ? t.includes(`${CT.PIECES.length} piece`) : /Proposals are open/.test(t));
 
 console.log("\n5. No unsourced figure, tokens only");
-const own = t.replace(/\d+ of \d+ researched|\d+ competitive classes \(\d+ calibrated\)|\d+ tools publish|\d+ industries and \d+ segments|\d{1,2} \w+ \d{4}|April 2026 edition, \d+ pages/g, "");
+const own = t.replace(/\d+ of \d+ researched|\d+ peer groups \(\d+ ready to compare\)|\d+ tools publish|\d+ industries and \d+ segments|\d{1,2} \w+ \d{4}|April 2026 edition, \d+ pages/g, "");
 ok("no percentage or dollar figure of our own", !/\d+(\.\d+)?\s?%|\$\s?\d/.test(own.replace(new RegExp(latest.map((i) => i.headline.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|") || "^$", "g"), "")));
 ok("tokens only: no colour literal", !/#[0-9a-fA-F]{3,8}\b|rgba?\(/.test(readFileSync("./Research.jsx", "utf8")));
 

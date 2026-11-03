@@ -53,7 +53,7 @@ const SRC = readFileSync("./CategoryVerticalPage.jsx", "utf8");
 ok("the industry paragraph renders through ClaimText", /<ClaimText text=\{text\.considerations\} \/>/.test(SRC));
 ok("the page lists the sources of its figures", /<ClaimSources ids=\{ids\}/.test(SRC));
 ok("each rule links its publisher in a new tab", /href=\{r\.url\} target="_blank" rel="noopener noreferrer"/.test(SRC));
-ok("the hero claims no evaluation of any vendor", !/evaluated for/.test(SRC) && /this page evaluates none/.test(SRC));
+ok("the hero claims no evaluation of any vendor", !/evaluated for/.test(SRC) && /This page evaluates none of them/.test(SRC));
 ok("the category name keeps its own capitals, and Vendor Match is described as the contact center tool it is", !/cat\.name\.toLowerCase/.test(SRC) && /A starting list of contact center platforms for/.test(SRC));
 ok("the lineage fields never render", !/considerationsDraft|complianceDraft|vert\.compliance\b/.test(SRC));
 ok("seven categories by ten industries: 70 pages here (CCaaS has its own)", Object.keys(CATEGORIES).filter((c) => c !== "ccaas").length * Object.keys(VERTICALS).length === 70);

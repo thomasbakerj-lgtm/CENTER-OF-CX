@@ -49,14 +49,14 @@ export const STAFFING_MODEL = {
     { label: "Critical", range: "Above " + pc(BENCH.occupancy.cautionMax, 0), meaning: "The read shows the sustainable pair: the agents a " + pc(BENCH.occupancy.targetHigh, 0) + " ceiling would add." },
     { label: "Model validity", range: "Interval at least " + RATIO + " times AHT", meaning: "Below it, contacts carry across intervals and Erlang C understates staffing; the tool says so and grades completeness Directional." },
   ],
-  bandsNote: "Shrinkage above the " + pc(BENCH.shrinkage.typicalLow, 0) + " to " + pc(BENCH.shrinkage.typicalHigh, 0) + " planning range, a labelled heuristic, is flagged as worth decomposing. Every other line is a threshold in the registry with its rationale.",
+  bandsNote: "Shrinkage above the " + pc(BENCH.shrinkage.typicalLow, 0) + " to " + pc(BENCH.shrinkage.typicalHigh, 0) + " planning range, a labelled heuristic, is flagged as worth decomposing. Every other line is a published threshold with the reason behind it.",
   constants: () => [
     ...["staffing.preset.general.vol", "staffing.preset.general.aht", "staffing.preset.general.slT", "staffing.preset.general.slS", "staffing.preset.general.shrink"],
     ...benchmarksForTool("staffing-calculator").map((e) => e.id).filter((id) => !id.startsWith("staffing.preset.")),
     "market.wage.agent", "load.fullyLoaded", "shrinkage.range.low", "shrinkage.range.high",
   ].map((id) => ({ id, ...BENCHMARK_SOURCES[id] })),
   example: {
-    note: "Computed by the tool's own engine. The first case is the tool's opening profile; the second reproduces a published staffing example (Nextiva's worked Erlang C case: 400 calls, 257-second handle time, 80% in 20 seconds, 85% occupancy cap), so the arithmetic can be checked against a source outside this site.",
+    note: "Computed by the tool itself. The first case is the tool's opening profile; the second reproduces a published staffing example (Nextiva's worked Erlang C case: 400 calls, 257-second handle time, 80% in 20 seconds, 85% occupancy cap), so the arithmetic can be checked against a source outside this site.",
     inputs: [["Opening case", "400 contacts per 30 minutes, 360-second AHT, 80% in 20 seconds, 30% shrinkage, open 40 hours a week with every interval as busy as the busiest"], ["Open all week", "The same busiest interval, open " + Y.hoursOpen + " hours a week, the average interval at " + Y.avgShare + "% of the busiest"], ["Published case", "400 contacts per 30 minutes, 257-second AHT, 80% in 20 seconds, 85% occupancy ceiling"]],
     steps: [
       ["Offered load, opening case", "400 × 360 ÷ 1,800 = " + D.load + " Erlangs"],

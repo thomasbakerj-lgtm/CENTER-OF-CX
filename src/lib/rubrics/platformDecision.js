@@ -1,4 +1,4 @@
-/* Platform Decision: the renewal gate, version 1.0. A renewal model (kind "renewal").
+/* Platform Decision: the renewal decision, version 1.0. A renewal model (kind "renewal").
  *
  * Published at /methodology/platform-decision from this object, and read by the engine in
  * src/lib/renewal.js. Truth type: the buyer's own view of their current platform. It reads
@@ -79,13 +79,13 @@ export const PLATFORM_DECISION = {
       action: "Test the market for {layer}. The gap is in the platform itself, so a product added beside it will not close it." },
     sprawl: { severity: "critical", title: "Too many layers need specialists", test: "{sprawlLayers} or more layers need a specialist. Heuristic count.",
       action: "Evaluate the stack as a whole. With {count} layers needing products beside the platform, you are making a re-platform decision one piece at a time." },
-    noTimeEvaluate: { severity: "critical", title: "No time to evaluate", test: "The gate is Run an evaluation and fewer than {evaluationMonths} months remain to the notice date. Heuristic months.",
+    noTimeEvaluate: { severity: "critical", title: "No time to evaluate", test: "The decision is Run an evaluation and fewer than {evaluationMonths} months remain to the notice date. Heuristic months.",
       action: "Negotiate a short extension in place of a full term. {months} months is too little time to run an evaluation." },
-    noTimeNegotiate: { severity: "high", title: "Little time to negotiate", test: "The gate needs conditions and fewer than {negotiationMonths} months remain to the notice date. Heuristic months.",
+    noTimeNegotiate: { severity: "high", title: "Little time to negotiate", test: "The decision needs conditions and fewer than {negotiationMonths} months remain to the notice date. Heuristic months.",
       action: "Start the renewal negotiation now. {months} months is little time to get conditions written into the contract." },
     exitUnknown: { severity: "high", title: "Exit and data terms unknown", test: "The exit, data-export and transition terms of the current contract are not known.",
       action: "Get the exit, data-export and transition-assistance terms in front of you before the negotiation, and run them through the Contract Risk Scanner." },
-    longTerm: { severity: "medium", title: "Long term with open conditions", test: "The term offered is {longTermYears} years or more while the gate needs conditions or an evaluation. Heuristic years.",
+    longTerm: { severity: "medium", title: "Long term with open conditions", test: "The term offered is {longTermYears} years or more while the decision needs conditions or an evaluation. Heuristic years.",
       action: "Tie the {years}-year term to the conditions: an exit right or a price reduction if a committed fix slips, or else a shorter term." },
     clockMissing: { severity: "info", title: "Renewal clock not entered", test: "Months to the notice date are not entered, so timing is not checked.",
       action: "Enter the months left to your notice date to check whether there is time to act." },

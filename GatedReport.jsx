@@ -12,12 +12,12 @@ const reports = {
   "iva-buyer-guide": {
     title: "IVA & Conversational AI Platform Buyer's Guide 2026",
     phase1: true,
-    subtitle: "The Phase 1 assessment of 43 IVA and conversational AI vendors, dated April 2026. Architecture eras, demo questions and cost traps, kept as a dated record while current research is published.",
+    subtitle: "Our April 2026 assessment of 43 IVA and conversational AI vendors. Architecture eras, demo questions and cost traps, kept as a dated record while we publish newer research.",
     pages: "26 pages",
     published: "April 2026",
     highlights: [
       "A first page, added 30 September 2026, that says what is withdrawn and what has not been re-checked",
-      "The Phase 1 assessment of 43 vendors, dated April 2026. Its scores and tiers are withdrawn on the site while current research is published",
+      "Our April 2026 assessment of 43 vendors. Its scores and tiers are withdrawn from the rest of the site while we publish newer research",
       "Five architecture eras, from intent-based IVR to LLM-based agents, as that edition described them",
       "Demo questions to ask any vendor before you believe a capability claim",
       "Costs that proposals tend to leave out",
@@ -32,11 +32,11 @@ const reports = {
   "ccaas-buyer-guide": {
     title: "CCaaS Platform Buyer's Guide 2026",
     phase1: true,
-    subtitle: "The Phase 1 assessment of 28 CCaaS platforms, dated April 2026. Migration risk, hidden costs, and the RFP questions most evaluations skip.",
+    subtitle: "Our April 2026 assessment of 28 contact center platforms. Migration risk, hidden costs, and the RFP questions most evaluations skip.",
     pages: "19 pages",
     published: "April 2026",
     highlights: [
-      "The Phase 1 assessment of 28 CCaaS platforms, dated April 2026. Its scores and tiers are withdrawn on the site while current research is published",
+      "Our April 2026 assessment of 28 contact center platforms. Its scores and tiers are withdrawn from the rest of the site while we publish newer research",
       "Assessments of 12 vendors, as that edition chose them, plus the four adjacent platforms that shape CCaaS decisions",
       "Migration risk framework: the factors that predict a stall or an overrun",
       "Hidden costs vendors leave out of proposals, and the RFP questions that expose them",
@@ -115,7 +115,7 @@ function Summary({ report, onOpen }) {
         </div>
 
         <div style={{ ...block, background: HOUSE.navy, borderRadius: 12, padding: "32px 28px" }}>
-          <h2 style={{ ...h2, color: HOUSE.mist }}>In the full guide (Phase 1 edition)</h2>
+          <h2 style={{ ...h2, color: HOUSE.mist }}>In the full guide (April 2026 edition)</h2>
           <ul style={{ margin: "0 0 22px", paddingLeft: 18, color: HOUSE.body, fontSize: 14, lineHeight: 1.8 }}>{s.fullOnly.map((x) => <li key={x}>{x}</li>)}</ul>
           <a href={report.pdf} target="_blank" rel="noopener noreferrer" onClick={onOpen} style={{ display: "inline-block", background: HOUSE.action, color: HOUSE.paper, fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 8 }}>Open the full guide (PDF, {report.pages}) →</a>
         </div>
@@ -127,7 +127,7 @@ function Summary({ report, onOpen }) {
               <a key={href} href={href} onClick={() => track("next_step_click", { from: "ccaas-buyer-guide", to: href.split("/").pop() })} style={{ border: `1px solid ${BORDER}`, borderRadius: 8, padding: "16px 16px", color: NAVY, fontSize: 14, fontWeight: 600, background: WARM }}>{label} →</a>
             ))}
           </div>
-          <p style={{ fontSize: 12, color: MUTED, marginTop: 20 }}>Phase 1 edition, published {report.published}. The full guide keeps that assessment's scores and tiers as a dated record; the site no longer shows them while current research is published. No vendor paid for, previewed or approved it.</p>
+          <p style={{ fontSize: 12, color: MUTED, marginTop: 20 }}>April 2026 edition, published {report.published}. The full guide keeps that assessment's scores and tiers as a dated record. We have withdrawn them from the rest of the site. No vendor paid for, previewed or approved it.</p>
         </div>
       </div>
     </section>
@@ -242,7 +242,7 @@ export default function GatedReport() {
               </div>
               <h1 style={{ fontFamily: FONT, fontSize: "clamp(28px, 3.5vw, 40px)", fontWeight: 400, color: HOUSE.mist, lineHeight: 1.15, margin: "0 0 16px" }}>{report.title}</h1>
               <p style={{ fontSize: 15, color: HOUSE.body, lineHeight: 1.7, marginBottom: report.phase1 ? 12 : 28 }}>{report.subtitle}</p>
-              {report.phase1 && <p style={{ fontSize: 13, color: LIGHT, lineHeight: 1.6, marginBottom: 28, maxWidth: 620 }}>Phase 1 edition. This report predates the current research methodology. Its scores and tiers are withdrawn everywhere else on the site and stay here only as a dated record of that assessment.</p>}
+              {report.phase1 && <p style={{ fontSize: 13, color: LIGHT, lineHeight: 1.6, marginBottom: 28, maxWidth: 620 }}>April 2026 edition. This report predates our current research method. Its scores and tiers are withdrawn everywhere else on the site. They stay here only as a dated record of that assessment.</p>}
 
               <div style={{ fontSize: 12, fontWeight: 700, color: LIGHT, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 12 }}>What's inside</div>
               <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>

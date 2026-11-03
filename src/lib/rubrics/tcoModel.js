@@ -56,7 +56,7 @@ export const TCO_MODEL = {
     "load.benefits", "load.marginal",
   ].map((id) => ({ id, ...BENCHMARK_SOURCES[id] })),
   example: {
-    note: "Computed by the tool's own engine at its opening case: the cross-industry profile, the expected stance and costs as estimates.",
+    note: "Computed by the tool itself at its opening case: the cross-industry profile, the expected stance and costs as estimates.",
     inputs: [["Operation", "200 agents at $" + b("market.wage.agent") + " an hour, 120,000 contacts a month, AHT 6:30 with 45 seconds after-call work, FCR 70%, containment 28%, attrition 40%"], ["Staff", "20 supervisors, 5 QA, 4 WFM, 3 trainers, 4 IT"], ["Technology", "$150 CCaaS, $45 WEM and $75 CRM a seat; voice 55% at $0.025 a minute; AI, analytics and platform lines at the profile"]],
     steps: [
       ["Loaded wage", "$" + b("market.wage.agent") + " × " + b("load.benefits") + " = " + usd2(P.loaded) + " an hour; agent labor " + usd(P.agentLabor) + " a month"],

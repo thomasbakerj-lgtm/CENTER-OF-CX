@@ -212,7 +212,7 @@ export default function SubVerticalPage({ industry, href, getSubVertical, initia
                       </button>
                       {expandedLayers[li] && (
                         <div style={{ display: "flex", flexDirection: "column", gap: 10, marginTop: 8 }}>
-                          <p style={K.small}>Named as examples of providers in this layer, in our words. This is neither a research finding nor a recommendation; researched vendors carry their findings on their profiles.</p>
+                          <p style={K.small}>We name these as examples of providers in this layer, in our own words. This list is neither a research finding nor a recommendation. Researched vendors show their findings on their profiles.</p>
                           <ul style={{ margin: 0, padding: 0, listStyle: "none", display: "flex", flexDirection: "column", gap: 8 }}>
                             {layer.stack.map((v, vi) => {
                               const slug = profileSlug(v.href);

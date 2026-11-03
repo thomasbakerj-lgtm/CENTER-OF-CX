@@ -37,8 +37,8 @@ const chip = { display: "inline-block", fontSize: 12, fontWeight: 600, padding: 
 const CSS = `.cx-cat p,.cx-cat li,.cx-cat a,.cx-cat dd{overflow-wrap:anywhere}`;
 
 const METHOD = [
-  ["Atomic claims", "Each finding is one testable claim with its own dated evidence and an evidence state: verified, strongly supported, inferred or unverified."],
-  ["Compared with peers", "Vendors are compared inside a class of platforms built for the same job. The class frames the comparison and carries no quality grade."],
+  ["One claim per finding", "Each finding is one claim you can test, with its own dated evidence and a label that says how well that evidence supports it."],
+  ["Compared with peers", "We compare each vendor only with platforms built for the same job: its peer group. The peer group frames the comparison and carries no quality grade."],
   ["Where they break", "Each break names the buyer condition that triggers it, whether implementation can mitigate it, what that adds in cost and who owns it after go-live."],
   ["Unknown stays unknown", "Missing public evidence raises the proof burden. It is never counted as a weakness."],
 ];
@@ -52,10 +52,10 @@ function Researched({ v, klass }) {
       <TagNotes vendorId={v.id} />
       {v.bestWhen
         ? <p style={K.body}><strong style={K.strong}>Where the research says it fits:</strong> {v.bestWhen.statement}</p>
-        : <p style={K.small}>No best-when statement is published for this vendor yet. Its profile carries the full research.</p>}
+        : <p style={K.small}>We have not yet published a strong-fit statement for this vendor. Its profile carries the full research.</p>}
       <p style={K.small}>Compared on: {(PLAIN[klass.id] || {}).compared || klass.boundary}</p>
       {v.also && PLAIN[v.also] && <p style={K.small}>Also compared in: {PLAIN[v.also].name}{PLAIN[v.also].provisional ? " (provisional)" : ""}</p>}
-      <p style={K.small}>Research validated {fmtDate(v.validated)}</p>
+      <p style={K.small}>Research checked {fmtDate(v.validated)}</p>
       <div><VendorIntroLink slug={v.slug} name={v.name} from="category" surface="category" color={ACCENT} /></div>
     </li>
   );
@@ -70,7 +70,7 @@ function Requested({ v }) {
         <a href={`/vendors/${v.slug}`} style={{ ...K.link, color: HOUSE.mist, fontSize: 17 }}>{v.name}</a>
         {next && <span style={{ ...chip, borderStyle: "dashed" }}>Researching next</span>}
       </div>
-      <p style={K.small}>Not yet researched under the current method. No class and no finding until it is.{v.segment ? ` Earlier Phase 1 description: ${v.segment}.` : ""}</p>
+      <p style={K.small}>Not yet researched in depth. It gets a peer group and findings once we research it.{v.segment ? ` Our earlier description: ${v.segment}.` : ""}</p>
       <div style={{ display: "flex", gap: 14, flexWrap: "wrap", alignItems: "center" }}>
         {!next && (sent
           ? <span role="status" style={K.small}>Request noted. Thank you.</span>
@@ -109,7 +109,7 @@ export default function CCaaSCategory({ initialClass = "all", initialSize = "all
           <span style={{ ...K.kicker, color: ACCENT }}>Vendor Intelligence</span>
           <h1 style={{ margin: 0, fontSize: "clamp(30px, 4vw, 44px)", fontWeight: 700, lineHeight: 1.1, color: HOUSE.mist }}>{CATEGORIES.ccaas.name}</h1>
           <p style={{ ...K.body, maxWidth: 760 }}>A contact center platform runs customer conversations: it routes calls and digital contacts to agents and bots, gives agents their desktop and gives supervisors the controls to run the operation. The category ends where a product only adds one piece around it: a digital-only channel, a CRM, workforce and quality tools, or a virtual agent. Those have their own categories.</p>
-          <p style={{ ...K.small, maxWidth: 760 }}>Phase 1 scores and tiers are withdrawn. Vendors are compared only with peers that do the same job, and nothing on this page ranks them.</p>
+          <p style={{ ...K.small, maxWidth: 760 }}>Scores and tiers from our earlier assessment are withdrawn. We compare each vendor only with platforms that do the same job, and nothing on this page ranks them.</p>
           <CategoryTerms category="ccaas" />
         </header>
 
@@ -118,14 +118,14 @@ export default function CCaaSCategory({ initialClass = "all", initialSize = "all
           <ul style={{ ...K.body, margin: "10px 0 0", paddingLeft: 18, display: "flex", flexDirection: "column", gap: 4 }}>
             <li>{researched} of {core.length} core platforms researched; {notYet.length} not yet.</li>
             <li>{classes.length} peer groups{classes.length - calibrated ? `, ${classes.length - calibrated} of them provisional` : ""}.</li>
-            <li>Research validated between {fmtDate(INDEX.validatedFrom)} and {fmtDate(INDEX.validatedTo)}.</li>
-            <li>Numeric ratings stay locked until each class has enough validated peers to support them.</li>
+            <li>Research checked between {fmtDate(INDEX.validatedFrom)} and {fmtDate(INDEX.validatedTo)}.</li>
+            <li>Ratings stay locked until each peer group has enough researched vendors to compare fairly.</li>
           </ul>
         </section>
 
         <section aria-labelledby="jobs" style={{ display: "flex", flexDirection: "column", gap: 12 }}>
           <h2 id="jobs" style={{ ...K.h2, margin: 0 }}>Start with the job you need done</h2>
-          <p style={K.small}>Pick a job to see the vendors researched for it. A class is context for comparison, never a quality grade.</p>
+          <p style={K.small}>Pick a job to see the vendors we researched for it. A peer group frames the comparison and carries no quality grade.</p>
           <div role="group" aria-label="Filter by job" style={K.grid(280)}>
             {classes.map((c) => {
               const pl = plain(c);
@@ -146,7 +146,7 @@ export default function CCaaSCategory({ initialClass = "all", initialSize = "all
             <button type="button" aria-pressed={psOnly} onClick={() => setPsOnly(!psOnly)} style={filterBtn(psOnly)}>{PS_LABEL}</button>
           </div>
           <p style={K.small}>{UC_LABEL}: the research shows the vendor's own phone system sold with its contact center. A size is the buyer size the research says the platform is sold to; "selected use" means the research calls that size selective. {PS_LABEL}: the research lists a product or offer sold to government or public sector. Where a tag holds only for some buyers, the note under it says which. A tag describes the offer and carries no grade.</p>
-          {pick !== "all" && <div><button type="button" onClick={() => choose("all")} style={{ ...K.link, background: "none", border: "none", padding: 0, cursor: "pointer", font: "inherit", fontSize: 14, minHeight: TOUCH }}>Show every class</button></div>}
+          {pick !== "all" && <div><button type="button" onClick={() => choose("all")} style={{ ...K.link, background: "none", border: "none", padding: 0, cursor: "pointer", font: "inherit", fontSize: 14, minHeight: TOUCH }}>Show every peer group</button></div>}
         </section>
 
         {shown.map((c) => (
@@ -155,18 +155,18 @@ export default function CCaaSCategory({ initialClass = "all", initialSize = "all
               <h2 id={`h-${c.id}`} style={{ ...K.h2, margin: 0 }}>{plain(c).name}</h2>
               {c.draft && <span style={{ ...chip, borderStyle: "dashed" }}>Provisional peer group</span>}
             </div>
-            <p style={K.small}>Research class: {c.name}. {c.definition}</p>
-            {c.boundary && <p style={K.small}>How the research compares this class, in its own words: {c.boundary}</p>}
+            <p style={K.small}>The research calls this group {c.name}. {c.definition}</p>
+            {c.boundary && <p style={K.small}>How the research compares this group, in its own words: {c.boundary}</p>}
             <p style={K.small}><a href={comparePath(c.id)} style={K.link}>Compare this group side by side</a></p>
             {c.kept.length
               ? <ul style={{ margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: 10 }}>{c.kept.map((v) => <Researched key={v.id} v={v} klass={c} />)}</ul>
-              : <p style={K.small}>No researched vendor in this class matches these filters.</p>}
+              : <p style={K.small}>No researched vendor in this group matches these filters.</p>}
           </section>
         ))}
 
         <section aria-labelledby="notyet" style={{ ...K.panel, display: "flex", flexDirection: "column", gap: 10 }}>
           <h2 id="notyet" style={{ ...K.h2, margin: 0 }}>Not yet researched</h2>
-          <p style={K.small}>These platforms keep their earlier Phase 1 context pages, labelled as such. They get a class only once researched. Asking us to research one sends an anonymous count and nothing else.</p>
+          <p style={K.small}>These platforms keep their earlier profiles, marked as such. Each gets a peer group once we research it. Asking us to research one sends an anonymous count and nothing else.</p>
           <ul style={{ margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: 10 }}>
             {notYet.map((v) => <Requested key={v.slug} v={v} />)}
           </ul>
@@ -175,13 +175,13 @@ export default function CCaaSCategory({ initialClass = "all", initialSize = "all
         {/* Audit 30 Sep (TB: agree): large buyers weigh these three, and a shortlist check would ask why they are missing. */}
         <section aria-labelledby="suites" style={{ ...K.panel, display: "flex", flexDirection: "column", gap: 10 }}>
           <h2 id="suites" style={{ ...K.h2, margin: 0 }}>Contact centers from the large cloud suites</h2>
-          <p style={K.small}>Three offers that large buyers often weigh are not in this research yet: Microsoft Dynamics 365 Contact Center, Google Cloud's contact center offering, and Salesforce's own contact center built on Service Cloud. The research adds one vendor at a time under a locked method, and none of these three has been researched, so this page makes no claim about them either way. Salesforce Service Cloud appears below as an adjacent suite.</p>
+          <p style={K.small}>Three offers that large buyers often weigh are not in this research yet: Microsoft Dynamics 365 Contact Center, Google Cloud's contact center offering, and Salesforce's own contact center built on Service Cloud. We research one vendor at a time, against a published method. We have not researched these three yet, so this page makes no claim about them either way. Salesforce Service Cloud appears below as an adjacent suite.</p>
           <p style={K.small}><a href="/research#ideas" style={K.link}>Tell us which one you want researched first</a></p>
         </section>
 
         <section aria-labelledby="adjacent" style={{ ...K.panel, display: "flex", flexDirection: "column", gap: 10 }}>
           <h2 id="adjacent" style={{ ...K.h2, margin: 0 }}>Adjacent suites</h2>
-          <p style={K.small}>Suites that shape contact center design from beside it, such as CRM and service management platforms. Tracked here, researched in their own categories.</p>
+          <p style={K.small}>Suites that shape contact center design from beside it, such as CRM and service management platforms. We list them here and research them in their own categories.</p>
           <ul style={{ margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: 10 }}>
             {adjacent.map((v) => (
               <li key={v.slug} style={{ ...K.box, listStyle: "none", display: "flex", flexDirection: "column", gap: 6 }}>
@@ -193,7 +193,7 @@ export default function CCaaSCategory({ initialClass = "all", initialSize = "all
         </section>
 
         <section aria-labelledby="method" style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-          <h2 id="method" style={{ ...K.h2, margin: 0 }}>How vendors are researched</h2>
+          <h2 id="method" style={{ ...K.h2, margin: 0 }}>How we research each vendor</h2>
           <div style={K.grid(240)}>
             {METHOD.map(([h, t]) => (
               <div key={h} style={K.box}><p style={{ ...K.body, ...K.strong }}>{h}</p><p style={{ ...K.small, marginTop: 6 }}>{t}</p></div>
@@ -210,7 +210,7 @@ export default function CCaaSCategory({ initialClass = "all", initialSize = "all
             <li><a href="/tools/contract-risk" style={K.link}>Contract Risk</a>: the clauses to find before you sign.</li>
             <li><a href="/tools/tco-calculator" style={K.link}>TCO Calculator</a>: what the platform costs to run over the term.</li>
           </ul>
-          <p style={K.small}>Further reading: the <a href="/research/ccaas-buyer-guide" style={K.link}>CCaaS buyer guide</a> (a dated Phase 1 edition) and <a href="/research/ccaas-migration-costs" style={K.link}>why CCaaS migrations rarely cut costs on their own</a>.</p>
+          <p style={K.small}>Further reading: the <a href="/research/ccaas-buyer-guide" style={K.link}>CCaaS buyer guide</a> (the dated April 2026 edition) and <a href="/research/ccaas-migration-costs" style={K.link}>why CCaaS migrations rarely cut costs on their own</a>.</p>
         </section>
       </div>
     </div>

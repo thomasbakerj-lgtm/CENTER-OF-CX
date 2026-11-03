@@ -44,7 +44,7 @@ export default function AnalyticsCategory() {
               {CATEGORIES.analytics.name}
             </h1>
             <p style={{ fontSize: "clamp(15px, 1.6vw, 17px)", color: HOUSE.body, lineHeight: 1.7, maxWidth: 620 }}>
-              {all.length} analytics vendors across {analyticsCats.length} platform categories: interaction analytics, auto-QA, operational workflow, WFM alignment, product insight and data integration. Listed by category and name; scores are withdrawn until this category is researched under the current methodology.
+              {all.length} analytics vendors across {analyticsCats.length} platform categories: interaction analytics, auto-QA, operational workflow, WFM alignment, product insight and data integration. Listed by category and name; scores from our earlier assessment are withdrawn until we research this category in depth.
             </p>
             <CategoryTerms category="analytics" />
           </FadeIn>

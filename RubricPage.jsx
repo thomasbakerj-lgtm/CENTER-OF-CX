@@ -287,7 +287,7 @@ function RenewalPage({ r }) {
       <header style={{ background: HOUSE.navy, borderBottom: `1px solid ${BORDER}`, padding: "56px 0 44px" }}>
         <div style={WRAP}>
           <span style={{ ...TYPE.eyebrow, color: LIGHT }}>Published method</span>
-          <h1 style={{ ...TYPE.display, color: HOUSE.mist, margin: "10px 0 12px" }}>{r.title}: how the renewal gate reads your platform</h1>
+          <h1 style={{ ...TYPE.display, color: HOUSE.mist, margin: "10px 0 12px" }}>{r.title}: how the renewal decision reads your platform</h1>
           <p style={{ ...TYPE.body, color: HOUSE.body, maxWidth: 640 }}>{r.what}</p>
           <p style={{ ...TYPE.caption, color: HOUSE.body, marginTop: 14 }}>Model version {r.version}, published {r.published}. {r.layers.length} layers, {total} needs. {r.truthType}</p>
         </div>
@@ -308,12 +308,12 @@ function RenewalPage({ r }) {
           <tbody>{r.outcomes.map((o) => <tr key={o.id}><td style={{ ...cell, fontWeight: 600, color: NAVY }}>{o.label}</td><td style={cell}>{fillT(o.test)}</td></tr>)}</tbody>
         </table>
         <p style={{ ...P, marginTop: 12 }}>A core layer is what the contact center platform itself is: {r.layers.filter((l) => l.core).map((l) => l.name).join(" and ")}. A gap there is not closed by adding a product beside the platform, so it calls for a market test; on the other layers a specialist can serve beside it.</p>
-        <h2 style={H2}>The renewal gate</h2>
+        <h2 style={H2}>The renewal decision</h2>
         <table tabIndex={0} style={{ width: "100%", borderCollapse: "collapse" }}>
-          <thead><tr><th style={th}>Gate</th><th style={th}>When</th></tr></thead>
+          <thead><tr><th style={th}>Decision</th><th style={th}>When</th></tr></thead>
           <tbody>{r.gates.map((g) => <tr key={g.id}><td style={{ ...cell, fontWeight: 600, color: NAVY }}>{g.label}</td><td style={cell}>{fillT(g.test)}</td></tr>)}</tbody>
         </table>
-        <p style={{ ...P, marginTop: 12 }}>The clock then checks whether there is time to act: fewer than {TV.evaluationMonths} months to the notice date is too little to run an evaluation, and fewer than {TV.negotiationMonths} months is little time to negotiate conditions. The next step is {link(r.next.contract)} when the exit and data terms are unknown or conditions must be written in, {link(r.next.market)} when the gate says evaluate, and {link(r.next.price)} when the call is to renew.</p>
+        <p style={{ ...P, marginTop: 12 }}>The clock then checks whether there is time to act: fewer than {TV.evaluationMonths} months to the notice date is too little to run an evaluation, and fewer than {TV.negotiationMonths} months is little time to negotiate conditions. The next step is {link(r.next.contract)} when the exit and data terms are unknown or conditions must be written in, {link(r.next.market)} when the decision says evaluate, and {link(r.next.price)} when the call is to renew.</p>
         <h2 style={H2}>Thresholds</h2>
         <table tabIndex={0} style={{ width: "100%", borderCollapse: "collapse" }}>
           <thead><tr><th style={th}>Threshold</th><th style={th}>Value</th><th style={th}>Basis</th></tr></thead>
@@ -508,7 +508,7 @@ function CalcPage({ r }) {
         {r.example.steps.map(([a, b]) => <div key={a} style={box}><div style={{ ...TYPE.label, color: NAVY }}>{a}</div><p style={{ ...P, fontSize: 14, margin: "4px 0 0" }}>{b}</p></div>)}
         {fixturesFor(r.id).length > 0 && <>
           <h2 style={H2}>Checked against</h2>
-          <p style={P}>Cases whose answer is known outside this site. The test suite computes each one with this tool's own engine on every change.</p>
+          <p style={P}>Cases whose answer is known outside this site. Our automated tests compute each one with this tool's own math on every change.</p>
           {fixturesFor(r.id).map((f) => <div key={f.id} style={box}><div style={{ ...TYPE.label, color: NAVY }}>{f.title} <span style={{ color: SLATE, fontWeight: 600 }}>· {FIXTURE_KIND[f.kind]}</span></div><p style={{ ...P, fontSize: 14, margin: "4px 0 0" }}>{f.case} Result: {f.expected}. {f.source}</p></div>)}
         </>}
         {r.checks && <>

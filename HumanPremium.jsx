@@ -25,7 +25,7 @@ export default function HumanPremium() {
         <div style={{ position: "absolute", inset: 0, background: "none" }} />
         <div style={{ ...NARROW, position: "relative", zIndex: 1, textAlign: "center" }}>
           <FadeIn>
-            <span style={{ color: GREEN, fontSize: 12, fontWeight: 700, letterSpacing: 3, textTransform: "uppercase", display: "block", marginBottom: 24 }}>A Center of CX Position</span>
+            <span style={{ color: GREEN, fontSize: 12, fontWeight: 700, letterSpacing: 3, textTransform: "uppercase", display: "block", marginBottom: 24 }}>A position from The Center of CX</span>
             <h1 style={{ fontFamily: FONT, fontSize: "clamp(36px, 5vw, 60px)", fontWeight: 400, color: HOUSE.mist, lineHeight: 1.08, margin: "0 0 28px", letterSpacing: "-0.02em" }}>
               The Human{" "}<span style={{ background: `linear-gradient(135deg, ${GREEN}, ${LIGHT})`, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Premium</span>
             </h1>

@@ -420,9 +420,9 @@ function gradeStaffing({ r, guards, valid, cost, shipped, vol, aht, shrink, rail
     railWhy,
   ].filter(Boolean).join(". ");
   const costWhy = cost.sourced && planDefaults.length
-    ? `The cost basis arrived over the rail, but the yearly figure still uses our default ${planDefaults.join(" and ")}. Enter your own to lift this stream`
+    ? `The cost basis came from another tool, but the yearly figure still uses our default ${planDefaults.join(" and ")}. Enter your own to lift this stream`
     : cost.sourced
-    ? `The cost basis arrived over the rail ${railOrigin ? `with an origin grade of ${railOrigin}` : "with no recorded origin grade"}. A rail value confers consistency, and evidence only as far as its origin`
+    ? `The cost basis came from another tool ${railOrigin ? `with an origin grade of ${railOrigin}` : "with no recorded origin grade"}. A value from another tool keeps your tools consistent, and its evidence goes only as far as where it came from`
     : `The cost basis is the BLS national median wage of $${BENCHMARK_HOURLY} an hour, loaded at ${FULL_LOAD_MULTIPLE}x. It is a market figure for the occupation and none of your own`;
   const evParts = [...(opsGrade === evidence ? [opsWhy] : []), ...(costGrade === evidence ? [costWhy] : [])];
 
@@ -842,7 +842,7 @@ export default function StaffingCalculator() {
               <ReportActions
                 toolId={TOOL_ID}
                 toolName="Staffing Requirement Calculator"
-                subtitle={`${r.sched} FTE in the busiest interval at ${(r.occ * 100).toFixed(1)}% occupancy, ${fmtMoney(cost.annual)} a year for ${hoursOpen} hours open a week, ${isVoid(gradeObj) ? "EXPORT VOID, integrity invariant failed" : `${confidence}, bound by ${gradeObj.boundBy}`}`}
+                subtitle={`${r.sched} FTE in the busiest interval at ${(r.occ * 100).toFixed(1)}% occupancy, ${fmtMoney(cost.annual)} a year for ${hoursOpen} hours open a week, ${isVoid(gradeObj) ? "EXPORT VOID, an internal check failed" : `${confidence}, bound by ${gradeObj.boundBy}`}`}
                 routePath={ROUTE}
                 state={st}
                 defaults={DEFAULTS}

@@ -275,16 +275,16 @@ function gradeCPC({ d, r, pre, railOrigin }) {
     const parts = [];
     const def = named(list, "default"), self = named(list, "self"), rail = named(list, "rail");
     if (def.length) parts.push(`${say(def)} ${def.length > 1 ? "are" : "is"} still at the tool default`);
-    if (self.length) parts.push(`${say(self)} ${self.length > 1 ? "were" : "was"} restored from this tool's own last run, and a tool never credentials itself`);
+    if (self.length) parts.push(`${say(self)} ${self.length > 1 ? "were" : "was"} restored from this tool's own last run, and a tool cannot vouch for its own figures`);
     if (rail.length) {
       const seen = [...new Set(list.filter(([f]) => origins[f] === "rail").map(([f]) => (pre && pre[f] && pre[f].origin) || railOrigin).map((g) => g || "none"))];
       const noted = seen.length === 1 && seen[0] === "none" ? "with no recorded origin grade" : `with an origin grade of ${say(seen)}`;
-      parts.push(`${say(rail)} arrived over the rail ${noted}, which confers consistency and evidence only as far as its origin`);
+      parts.push(`${say(rail)} came from another tool ${noted}. A value from another tool keeps your tools consistent, and its evidence goes only as far as where it came from`);
     }
     return parts;
   };
   const opsParts = why(OPS_FIELDS);
-  if (!opsParts.length && !attested) opsParts.push("FCR and M are your own entries but are not attested from data. Tick the validation box once they come from your reporting");
+  if (!opsParts.length && !attested) opsParts.push("FCR and M are your own entries, and nothing confirms them from data yet. Tick the reporting data box once they come from your reports");
   if (!opsParts.length) opsParts.push("Volume, FCR and M are your own entries, attested from data. Self-attestation stands at Planning-grade at most");
   const costParts = why(COST_FIELDS);
   if (r.margDerived) costParts.push(`marginal cost was derived at ${Math.round(MARG_SHARE * 100)} percent of loaded rather than entered`);
@@ -295,7 +295,7 @@ function gradeCPC({ d, r, pre, railOrigin }) {
   const realization = realizationFromCred(r.cred);
   const realWhy = r.mechKey === "none"
     ? "No capacity action is selected, so no released capacity converts to cash"
-    : `${MECH[r.mechKey].label} is credited as ${r.cred} in mech.js`;
+    : `${MECH[r.mechKey].label} is credited as ${r.cred} under our capacity-action rules`;
 
   const blockers = [];
   if (r.guards.length) blockers.push(`${r.guards.length} input${r.guards.length > 1 ? "s were" : " was"} outside the possible range and corrected before calculation`);
@@ -591,7 +591,7 @@ export default function CostPerContactCalculator() {
           <ReportActions
             toolId={TOOL_ID}
             toolName="Cost per Contact / Resolution"
-            subtitle={`Handle vs resolution cost · ${isVoid(gradeObj) ? "EXPORT VOID, integrity invariant failed" : `${confidence}, bound by ${gradeObj.boundBy}`} · action: ${MECH[mechKey].label}`}
+            subtitle={`Handle vs resolution cost · ${isVoid(gradeObj) ? "EXPORT VOID, an internal check failed" : `${confidence}, bound by ${gradeObj.boundBy}`} · action: ${MECH[mechKey].label}`}
             routePath={ROUTE}
             state={scenario}
             defaults={DEFAULTS}

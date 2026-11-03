@@ -33,7 +33,7 @@ export const FOR_YOU = [
   { who: "New to contact centers", text: "The numbers people will ask you about, explained where you first meet them: handle time, occupancy, first contact resolution, shrinkage. The tools show how each one moves the others, so you learn how the operation works as well as what it calls things." },
   { who: "Running operations and workforce", text: "Staffing, occupancy, shrinkage, adherence and forecast accuracy on published methods. When you ask for another agent or a schedule change, the case rests on arithmetic your leadership can check line by line." },
   { who: "Leadership", text: "Cost, service and risk in one view before you commit budget, with a grade on every result that tells you how far you can rely on it and what would make it firmer." },
-  { who: "Strategy and transformation", text: "Readiness assessments, a renewal gate and a business case that keeps freed time apart from real savings, so a plan is built on what will actually change and who has to change it." },
+  { who: "Strategy and transformation", text: "Readiness assessments, a renewal decision and a business case that keeps freed time apart from real savings, so a plan is built on what will actually change and who has to change it." },
   { who: "IT, platforms and architecture", text: "Vendor research finding by finding: what a platform does, where it breaks, what it takes to implement and who owns the complexity after go-live, with the public source behind each point." },
   { who: "Security, risk and compliance", text: "Contract terms read clause by clause, including how an AI vendor may use your data, security and residency, and the rules each industry answers to, each with its source." },
   { who: "Finance and procurement", text: "Total cost, license gaps and business cases where every figure is sourced, marked as an assumption, or yours, and the report says which. Built to hold up when someone asks where a number came from." },
@@ -44,7 +44,7 @@ export const FOR_YOU = [
 /* What a reader can use, each with the count its registry holds. */
 export const OFFER = [
   { n: TOOL_COUNT, title: "diagnostics", text: `Calculators, assessments and procurement tools. Each has a published method (${METHOD_COUNT} in all) and a report you can download with no sign-in.`, href: "/tools", cta: "See the diagnostics" },
-  { n: VENDOR_PROFILE_COUNT, title: "vendor profiles", text: `Across ${CATEGORY_COUNT} technology categories, listed A to Z. ${CCAAS_COMPLETE_COUNT} contact center platforms are researched finding by finding, each finding with its public sources and validation date.`, href: "/vendors", cta: "Browse the vendors" },
+  { n: VENDOR_PROFILE_COUNT, title: "vendor profiles", text: `Across ${CATEGORY_COUNT} technology categories, listed A to Z. ${CCAAS_COMPLETE_COUNT} contact center platforms are researched finding by finding, each finding with its public sources and the date we checked it.`, href: "/vendors", cta: "Browse the vendors" },
   { n: INDUSTRY_COUNT, title: "industries", text: `With ${SEGMENT_COUNT} segments: what each one requires, the regulation it answers to and the published benchmarks that exist for it. Where no public benchmark exists, the page says so.`, href: "/industries", cta: "Find your industry" },
 ];
 
@@ -59,7 +59,7 @@ export const HOW = [
 /* The independence rules. */
 export const RULES = [
   "No vendor pays to appear, to move, to be left out or to see research before it is published.",
-  "Vendor lists run A to Z. No scores or ranks are shown while the current research is in progress; the earlier Phase 1 scores are withdrawn.",
+  "Vendor lists run A to Z. We show no scores or ranks while our research is in progress, and the scores from our earlier assessment are withdrawn.",
   "An introduction to a vendor, when you ask for one, never changes a list, an order or a finding.",
   "Anyone, including a vendor, can report an error with a public source. Every accepted correction is shown on the vendor's page.",
 ];

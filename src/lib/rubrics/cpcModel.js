@@ -47,13 +47,13 @@ export const CPC_MODEL = {
     { label: "Resolution premium colour", range: "Amber above " + benchmark("cpc.band.gapAmber") + "%, red above " + benchmark("cpc.band.gapRed") + "%", meaning: "Colour only. It reaches no confidence axis." },
     { label: "Shallow repeat check", range: "FCR under " + pc(benchmark("cpc.read.lowFcr"), 0) + " with M under " + benchmark("cpc.read.shallowM"), meaning: "The repeat path is likely understated; completeness holds Directional until M is checked." },
   ],
-  bandsNote: "Every line is a threshold in the registry with its rationale.",
+  bandsNote: "Every line is a published threshold with the reason behind it.",
   constants: () => [
     ...benchmarksForTool("cost-per-contact").map((e) => e.id),
     "market.wage.agent", "load.benefits",
   ].map((id) => ({ id, ...BENCHMARK_SOURCES[id] })),
   example: {
-    note: "Computed by the tool's own engine at its opening profile, with avoided hiring as the capacity action (" + pc(H.f, 0) + " of freed capacity). The tool itself opens with no action chosen, which realizes $0.",
+    note: "Computed by the tool itself at its opening profile, with avoided hiring as the capacity action (" + pc(H.f, 0) + " of freed capacity). The tool itself opens with no action chosen, which realizes $0.",
     inputs: [["Volume", "50,000 handled contacts a month"], ["Resolution", "FCR 72%, M 2.4 contacts per unresolved issue"], ["Cost", "$7.00 loaded, $4.20 marginal per contact"], ["Channels", "voice 60% at 7 minutes, chat 25% at 9 minutes and 2.5 concurrent, email 15% at 5 minutes; $" + benchmark("market.wage.agent") + " an hour × " + benchmark("load.benefits") + "; 140 productive hours per FTE"]],
     steps: [
       ["Contacts per resolution", "0.72 + 0.28 × 2.4 = " + P.C],

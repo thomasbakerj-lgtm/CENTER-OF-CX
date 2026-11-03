@@ -18,7 +18,7 @@ export const EVIDENCE = {
 };
 export const DECISION = { BEST_WHEN: "Strong fit when", CAUTION_WHEN: "Be careful if", ELIMINATE_WHEN: "Rule it out if", CONTEXT: "Context", EVIDENCE_CONFIDENCE: "What the evidence can show" };
 export const FIT = { IMPROVES: "Fit improves when", DECLINES: "Fit declines when" };
-export const CLASS_STATUS = { LOCKED_CALIBRATED: "Calibrated", DRAFT: "Draft class, still being normalized", ACTIVE: "Active peer group", PROVISIONAL: "Provisional peer group" };
+export const CLASS_STATUS = { LOCKED_CALIBRATED: "Ready to compare", DRAFT: "Draft peer group, still being checked", ACTIVE: "Active peer group", PROVISIONAL: "Provisional peer group" };
 const SETTLED_CLASS = new Set(["LOCKED_CALIBRATED", "ACTIVE"]);
 /* The five cost layers, in the research's public words, in the order a buyer meets them. */
 export const COST_LAYERS = { PLATFORM: "Subscription and usage cost", TRANSFORMATION: "Setup and switching cost", RUN_STATE: "Year-two running cost",
@@ -43,8 +43,8 @@ export function glossary(rows = []) {
 export const METHOD_PAGE = "/research/vendor-method";
 export function methodNote(vendor) {
   const v = vendor && vendor.Method_Version;
-  if (v === "2") return { version: "2", text: "Researched under Research Method 2." };
-  if (v === "1") return { version: "1", text: "Researched under Research Method 1. A re-audit under Research Method 2 is in progress." };
+  if (v === "2") return { version: "2", text: "Researched with our current method." };
+  if (v === "1") return { version: "1", text: "Researched with our first method. We are checking it again against our current method." };
   return null;
 }
 

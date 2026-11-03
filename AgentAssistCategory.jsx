@@ -47,7 +47,7 @@ export default function AgentAssistCategory() {
               {CATEGORIES["agent-assist"].name}
             </h1>
             <p style={{ fontSize: "clamp(15px, 1.6vw, 17px)", color: HOUSE.body, lineHeight: 1.7, maxWidth: 640 }}>
-              {all.length} agent assist vendors: real-time guidance, knowledge grounding, workflow actions, coaching and compliance. The category sits where cost, quality, compliance and employee experience meet. Listed by type and name; scores are withdrawn until this category is researched under the current methodology.
+              {all.length} agent assist vendors: real-time guidance, knowledge grounding, workflow actions, coaching and compliance. The category sits where cost, quality, compliance and employee experience meet. Listed by type and name; scores from our earlier assessment are withdrawn until we research this category in depth.
             </p>
             <CategoryTerms category="agent-assist" />
           </FadeIn>

@@ -154,7 +154,7 @@ export default function IndustryPage({ slug, name, accent = "CX Intelligence", i
         {vendors && vendors.items.length > 0 && (
           <section aria-labelledby="platforms" style={{ display: "flex", flexDirection: "column", gap: 14 }}>
             <Head id="platforms" kicker="Vendor Intelligence" title={`Platforms named for ${name.toLowerCase()}`} />
-            <p style={{ ...K.small, maxWidth: 760 }}>Named here, A to Z, as a place to start. The list carries no ranking or recommendation. What the research says about each researched platform is on its profile{CCAAS_INDEXED_INDUSTRIES.includes(slug) ? <>, and gathered for {name.toLowerCase()} on <a href={`/vendors/ccaas/${slug}`} style={K.link}>contact center platforms for {name}</a></> : null}.</p>
+            <p style={{ ...K.small, maxWidth: 760 }}>We list these platforms A to Z as a place to start. The list carries no ranking or recommendation. What our research found on each researched platform is on its profile{CCAAS_INDEXED_INDUSTRIES.includes(slug) ? <>, and gathered for {name.toLowerCase()} on <a href={`/vendors/ccaas/${slug}`} style={K.link}>contact center platforms for {name}</a></> : null}.</p>
             <ul style={{ margin: 0, padding: 0, listStyle: "none", ...K.grid(280) }}>
               {[...vendors.items].sort((a, b) => a.name.localeCompare(b.name)).map((v) => {
                 const s = slugOf(v.href);
@@ -163,7 +163,7 @@ export default function IndustryPage({ slug, name, accent = "CX Intelligence", i
                   <li key={v.name} style={{ ...K.box, display: "flex", flexDirection: "column", gap: 6 }}>
                     {v.href ? <a href={v.href} style={{ ...K.link, color: HOUSE.mist, fontSize: 16 }}>{v.name}</a> : <span style={K.strong}>{v.name}</span>}
                     {v.label && <span style={K.small}>{v.label}</span>}
-                    {rec ? <Tags vendorId={rec.vendorId} /> : <p style={K.small}>Not yet researched under the current method.</p>}
+                    {rec ? <Tags vendorId={rec.vendorId} /> : <p style={K.small}>Not yet researched in depth.</p>}
                     <div><VendorIntroLink slug={s} name={v.name} from="industry" surface="industry" color={ACCENT} /></div>
                   </li>
                 );

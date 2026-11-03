@@ -55,7 +55,7 @@ export const FCR_MODEL = {
     ...benchmarksForTool("fcr-leakage").map((e) => e.id),
   ].map((id) => ({ id, ...BENCHMARK_SOURCES[id] })),
   example: {
-    note: "Computed by the tool's own engine at its opening inputs, with a declared cross-channel scope, an internal 7-day callback window, every diagnostic statement answered at 3 and avoided hiring as the capacity action (" + pc(H.f, 0) + " of freed capacity). The tool itself opens with no action chosen, which realizes $0. It does not pay back: the example shows a case the tool reports honestly as a loss.",
+    note: "Computed by the tool itself at its opening inputs, with a declared cross-channel scope, an internal 7-day callback window, every diagnostic statement answered at 3 and avoided hiring as the capacity action (" + pc(H.f, 0) + " of freed capacity). The tool itself opens with no action chosen, which realizes $0. It does not pay back: the example shows a case the tool reports honestly as a loss.",
     inputs: [["Volume and resolution", "50,000 contacts a month, FCR 72%, target 80%, one-callback model"], ["Cost", "$6.50 marginal, $11 loaded per contact, repeat multiplier 1.0"], ["Investment", "$150,000 one-time, $90,000 a year recurring"]],
     steps: [
       ["Repeat share", "(1 − 0.72) ÷ (2 − 0.72) = " + pc(P.repeatShare, 2) + ", " + num(P.repeats) + " repeats a month"],

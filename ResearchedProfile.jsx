@@ -69,7 +69,7 @@ function Claim({ c }) {
         {c.Stale && <span style={{ ...chip, borderStyle: "dashed" }}>Source due for review</span>}
       </div>
       {c.Buyer_Implication && <p style={{ ...K.small, marginTop: 8 }}><strong style={K.strong}>What it means for a buyer:</strong> {c.Buyer_Implication}</p>}
-      <p style={{ ...K.small, marginTop: 4 }}>Validated {fmtDate(c.Validation_Date)}</p>
+      <p style={{ ...K.small, marginTop: 4 }}>Checked {fmtDate(c.Validation_Date)}</p>
       <Sources list={c.sources} />
     </li>
   );
@@ -133,7 +133,7 @@ function TakeItFurther({ p, slug }) {
     ["/tools/contract-risk", "Check the contract before you sign", "Contract Risk: the clauses to find.", "test-it"],
     ["/tools/tco-calculator", "Model the cost over the term", "TCO Calculator.", "test-it"],
     ["/tools/license-gap", "Find what the bundle leaves out", "License Gap.", "test-it"],
-    ["/tools/vendor-match", "Build a starting list", "Vendor Match. It still runs on its Phase 1 model and does not read this research yet.", "test-it"],
+    ["/tools/vendor-match", "Build a starting list", "Vendor Match. It still runs on our earlier model and does not use this research yet.", "test-it"],
   ];
   return (
     <section aria-label="Take it further" style={K.panel}>
@@ -150,7 +150,7 @@ function TakeItFurther({ p, slug }) {
 function FitView({ p }) {
   return (<>
     {p.klass && (
-      <section aria-label="Competitive class" style={K.lead}>
+      <section aria-label="Peer group" style={K.lead}>
         <span style={K.kicker}>Compared with vendors that do the same job</span>
         <h2 style={{ ...K.h2, marginTop: 6 }}>{p.klass.name}</h2>
         <p style={K.body}>{p.klass.job}</p>
@@ -161,7 +161,7 @@ function FitView({ p }) {
           <Pair label="Peer group status" value={p.klass.status} />
           {p.alsoIn && <Pair label="Also compared in" value={`${p.alsoIn.name} (${p.alsoIn.status.toLowerCase()})`} />}
         </dl>
-        <p style={{ ...K.small, marginTop: 10 }}>The class is context for comparison, never a quality grade. {p.vendor.Class_Rationale}</p>
+        <p style={{ ...K.small, marginTop: 10 }}>The peer group sets who it is compared with. It carries no grade. {p.vendor.Class_Rationale}</p>
       </section>
     )}
     <SoldTo p={p} />
@@ -428,7 +428,7 @@ function SourcesView({ p, manifestDate }) {
         ))}
       </ul>
     </section>
-    <p style={K.small}>Research checkpoint {manifestDate ? `of ${fmtDate(manifestDate)}` : ""}. Ratings stay unpublished until each competitive class has enough validated peers to compare fairly.</p>
+    <p style={K.small}>Research as of {manifestDate ? fmtDate(manifestDate) : "the latest update"}. We publish ratings only once each peer group has enough researched vendors to compare fairly.</p>
   </>);
 }
 
@@ -445,7 +445,7 @@ export default function ResearchedProfile({ slug, file, shared, manifestDate, in
       <Crumbs items={[["Vendor Intelligence", "/vendors"], [CATEGORIES.ccaas.name, "/vendors/ccaas"], [v.Supplier_Name]]} />
       <div style={{ maxWidth: 1080, margin: "0 auto", padding: "28px 20px 64px", boxSizing: "border-box", display: "flex", flexDirection: "column", gap: 20 }}>
         <header style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-          <span style={{ ...K.kicker, color: PILLARS.vendors.onDark }}>Researched · validated {fmtDate(v.Last_Validated_Date)}</span>
+          <span style={{ ...K.kicker, color: PILLARS.vendors.onDark }}>Researched · checked {fmtDate(v.Last_Validated_Date)}</span>
           <h1 style={{ margin: 0, fontSize: "clamp(30px, 4vw, 44px)", fontWeight: 700, lineHeight: 1.1, color: HOUSE.mist }}>{v.Supplier_Name}</h1>
           <p style={{ ...K.body, maxWidth: 720 }}>{[v.Legal_Name, v.HQ, v.Ownership_Status].filter(Boolean).join(" · ")}</p>
           <Tags vendorId={v.Vendor_ID} />

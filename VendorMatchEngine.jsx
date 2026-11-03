@@ -298,7 +298,7 @@ export const shownScore = (v) => (v.raw >= SCORE_CAP ? `${SCORE_CAP}+` : String(
 /* Interim disclosure (CLAUDE.md sections 12 and 13). This engine still scores a
    24-vendor CCaaS set from the Phase 1 model. The class-scoped rebuild on current
    research is Stage 4. Until then the page says so. */
-const METHOD_NOTE = `These fit scores come from the Phase 1 CCaaS (contact center as a service) model: 24 vendors, each scored on 27 dimensions, then adjusted for your vertical, priorities, weightings, budget sensitivity and contract term. Operation size does not change the list yet: the Phase 1 size ratings have no source and contradict themselves, so every vendor starts from the same point until this engine is rebuilt on current research, which records the sizes each researched vendor is sold to. Use them as a starting shortlist. They do not rank vendors on current research. Current research on CCaaS vendors is under way, and this engine will be rebuilt on it, ranking only within comparable classes of vendor. Scores near the top of the scale are too close to tell apart in any meaningful way. So no score shows above ${SCORE_CAP}: in almost half of buyer profiles this model puts its top vendor at or above it, and in about a quarter several vendors reach it, so a higher number would claim a precision the model does not have. Vendors within ${LEAD_GAP} points of the top vendor are shown as one leading group, too close to separate.`;
+const METHOD_NOTE = `These fit scores come from our earlier CCaaS (contact center as a service) model: 24 vendors, each scored on 27 dimensions, then adjusted for your vertical, priorities, weightings, budget sensitivity and contract term. Operation size does not change the list yet. That model's size ratings have no source and contradict themselves, so every vendor starts from the same point. Our in-depth research records the sizes each researched vendor is sold to, and the list will use it once we rebuild this tool on that research. Use these scores as a starting shortlist. They do not rank vendors on our in-depth research. That research on CCaaS vendors is under way. Once we rebuild this tool on it, the tool will rank vendors only within their peer group. Scores near the top of the scale are too close to tell apart in any meaningful way. So no score shows above ${SCORE_CAP}: in almost half of buyer profiles this model puts its top vendor at or above it, and in about a quarter several vendors reach it, so a higher number would claim a precision the model does not have. Vendors within ${LEAD_GAP} points of the top vendor are shown as one leading group, too close to separate.`;
 
 export default function VendorMatchEngine() {
   const [init] = useState(() => { const sc = readScenario(TOOL_ID, DEFAULTS); return { fromLink: !!sc, d: cleanState(sc) }; });
@@ -341,12 +341,12 @@ export default function VendorMatchEngine() {
   const results = getResults();
 
   const result = phase === "results"
-    ? <Result label="Vendors on the starting list" value={String(results.length)} change="Phase 1 CCaaS model, a starting list. How the scores are made is stated above the list." />
+    ? <Result label="Vendors on the starting list" value={String(results.length)} change="Our earlier CCaaS model, a starting list. How the scores are made is stated above the list." />
     : <Result label="Steps answered" value={`${[d.vertical && d.size, d.priorities.length > 0].filter(Boolean).length} of 2`} change="Your environment and at least one priority build the shortlist." />;
 
   return (
     <ToolFrame toolId={TOOL_ID} section="Vendor Selection" name="Vendor Match" title="Which CCaaS vendors belong on your starting list?"
-      lede="Describe your environment, priorities and compliance needs, and get a shortlist with the reasoning behind each fit. The ranking runs on the Phase 1 vendor model, and its method is stated with the results."
+      lede="Describe your environment, priorities and compliance needs, and get a shortlist with the reasoning behind each fit. The ranking runs on our earlier vendor model, and we state its method with the results."
       result={result} pinned={phase === "results" ? { label: "Vendors on the list", value: String(results.length) } : null}>
       <style>{FONT_IMPORT_CSS + optionCss("vm-sel")}</style>
 
@@ -379,7 +379,7 @@ export default function VendorMatchEngine() {
           </div>
         </Group>)}
 
-        {step===2&&(<Group legend="Compliance Requirements" note={`Based on your ${d.vertical||"selected"} vertical. These do not change the list or its order: the Phase 1 model holds no verified compliance data. They print in your report as requirements to confirm with each vendor.`}>
+        {step===2&&(<Group legend="Compliance Requirements" note={`Based on your ${d.vertical||"selected"} vertical. These do not change the list or its order: our earlier model holds no verified compliance data. They print in your report as requirements to confirm with each vendor.`}>
           <div style={K.grid(240)}>
             {vertComp.map(req=>{const on=d.compliance.includes(req);return(<button key={req} type="button" aria-pressed={on} onClick={()=>toggleArr("compliance",req)} style={{...pickStyle(on),...K.strong,fontSize:14,fontWeight:on?700:500}}>{on?"\u2713 ":""}{req}</button>);})}
           </div>
@@ -416,7 +416,7 @@ export default function VendorMatchEngine() {
         </section>
         <section aria-label="Your vendor shortlist" style={K.panel}>
           <span style={K.kicker}>Your Vendor Shortlist</span>
-          <h2 style={{...K.h2,marginTop:6}}>A Phase 1 starting list, ordered by fit on that model</h2>
+          <h2 style={{...K.h2,marginTop:6}}>A starting list from our earlier model, ordered by fit on that model</h2>
           <p style={K.small}>{d.size} in {d.vertical||"your vertical"}{d.currentPlatform&&d.currentPlatform!=="None / Greenfield"?`, migrating from ${d.currentPlatform}`:""}. {d.priorities.length} priorities. {d.compliance.length} compliance requirements.</p>
         </section>
 
@@ -441,7 +441,7 @@ export default function VendorMatchEngine() {
                 </div>
                 <div style={{textAlign:"center",flexShrink:0}}>
                   <div style={{...K.strong,...K.num,fontSize:isTop?32:22}}>{shownScore(v)}</div>
-                  <div style={{...K.small,fontWeight:600,color:K.strong.color}}>{v.lead?"Leading group":"Phase 1 fit"}</div>
+                  <div style={{...K.small,fontWeight:600,color:K.strong.color}}>{v.lead?"Leading group":"Fit on our earlier model"}</div>
                 </div>
               </div>
               {v.lead&&<p style={{...K.small,marginTop:6}}>Within {LEAD_GAP} points of the top vendor on this model: too close to separate.</p>}
@@ -460,7 +460,7 @@ export default function VendorMatchEngine() {
                 </details>
                 {v.integrations&&v.integrations.length>0&&(
                   <div style={{...K.box,marginTop:8}}>
-                    <div style={{...K.kicker,marginBottom:4}}>Integrations named in the Phase 1 data</div>
+                    <div style={{...K.kicker,marginBottom:4}}>Integrations named in our earlier data</div>
                     <p style={K.body}>{v.integrations.join(", ")}</p>
                   </div>
                 )}
@@ -500,14 +500,14 @@ export default function VendorMatchEngine() {
                 label: v.name.split(" ")[0],
                 value: shownScore(v),
                 color: v.score >= 85 ? GREEN : v.score >= 70 ? AMBER : MUTED,
-                sub: v.lead ? "Leading group" : "Phase 1 fit",
+                sub: v.lead ? "Leading group" : "Fit on our earlier model",
               })) },
               { title: "Top Match Intelligence", type: "actions", items: results.slice(0, 3).map((v, i) => ({
                 action: `${v.name}`,
-                detail: `Strengths: ${v.strengths.join("; ")}. Risk: ${v.risks[0] || "N/A"}.${v.integrations && v.integrations.length > 0 ? ` Integrations named in the Phase 1 data: ${v.integrations.join(", ")}.` : ""}`,
+                detail: `Strengths: ${v.strengths.join("; ")}. Risk: ${v.risks[0] || "N/A"}.${v.integrations && v.integrations.length > 0 ? ` Integrations named in our earlier data: ${v.integrations.join(", ")}.` : ""}`,
                 priority: i === 0 ? "high" : undefined,
               })) },
-              { title: "Important Note", type: "text", content: "This shortlist comes from independently scored Phase 1 vendor data across 27 weighted dimensions. Fit also depends on details this tool cannot capture: integration complexity, contract terms, implementation timelines and how ready your organization is. Use it as the starting point for a deeper evaluation. The final decision belongs to that evaluation." },
+              { title: "Important Note", type: "text", content: "This shortlist comes from our earlier, independently scored vendor data across 27 weighted dimensions. Fit also depends on details this tool cannot capture: integration complexity, contract terms, implementation timelines and how ready your organization is. Use it as the starting point for a deeper evaluation. The final decision belongs to that evaluation." },
             ]}
           />
         </Paper>

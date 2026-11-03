@@ -53,7 +53,7 @@ function Theme({ t }) {
                   <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 4, alignItems: "center" }}>
                     <span style={chip}>{KIND[r.kind]}</span>
                     {evidence(r.state) && <span style={{ ...chip, fontWeight: 500 }}>{evidence(r.state)}</span>}
-                    {r.validated && <span style={K.small}>Validated {fmtDate(r.validated)}</span>}
+                    {r.validated && <span style={K.small}>Checked {fmtDate(r.validated)}</span>}
                   </div>
                 </li>
               ))}
@@ -82,8 +82,8 @@ export default function CCaaSIndustry({ verticalSlug }) {
         <header style={{ display: "flex", flexDirection: "column", gap: 10 }}>
           <span style={{ ...K.kicker, color: ACCENT }}>Vendor Intelligence · by industry</span>
           <h1 style={{ margin: 0, fontSize: "clamp(28px, 4vw, 40px)", fontWeight: 700, lineHeight: 1.12, color: HOUSE.mist }}>Contact center platforms for {vert.name}</h1>
-          <p style={{ ...K.body, maxWidth: 760 }}>What the current research on {researched.length} contact center platforms says that bears on {vert.name.toLowerCase()} buyers. The research is organised by vendor, so this page gathers it by published rules, shown with each theme, and shows every record that meets them in the research's own words. Nothing here ranks a vendor.</p>
-          <p style={{ ...K.small, maxWidth: 760 }}>The requirements and regulations of {vert.name.toLowerCase()}, each with its source, are on the <a href={vert.industryPage} style={K.link}>{vert.name} industry page</a>. Phase 1 vertical fit scores are withdrawn.</p>
+          <p style={{ ...K.body, maxWidth: 760 }}>What our research on {researched.length} contact center platforms means for {vert.name.toLowerCase()} buyers. The research is organised by vendor. This page gathers it by theme, using rules shown with each theme, and quotes every matching record in the research's own words. Nothing here ranks a vendor.</p>
+          <p style={{ ...K.small, maxWidth: 760 }}>The requirements and regulations of {vert.name.toLowerCase()}, each with its source, are on the <a href={vert.industryPage} style={K.link}>{vert.name} industry page</a>. The industry fit scores from our earlier assessment are withdrawn.</p>
         </header>
 
         {themes.length
@@ -112,7 +112,7 @@ export default function CCaaSIndustry({ verticalSlug }) {
             {notYet.map((v) => (
               <li key={v.slug} style={{ ...K.box, display: "flex", flexDirection: "column", gap: 6 }}>
                 <a href={`/vendors/${v.slug}`} style={{ ...K.link, color: HOUSE.mist, fontSize: 16 }}>{v.name}</a>
-                <p style={K.small}>Not yet researched under the current method.</p>
+                <p style={K.small}>Not yet researched in depth.</p>
                 <div><VendorIntroLink slug={v.slug} name={v.name} from="category" surface="category" color={ACCENT} /></div>
               </li>
             ))}
