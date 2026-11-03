@@ -14,7 +14,7 @@ import { scoreRenewal, renewalNeeds, renewalVars } from "./src/lib/renewal";
 import HelpOffer from "./src/lib/HelpOffer.jsx";
 import { offerFor } from "./src/lib/helpOffers.js";
 
-/* Platform Decision: the renewal gate. The rules, thresholds and outcomes live in the
+/* Platform Decision: the renewal decision. The rules, thresholds and outcomes live in the
    published model (src/lib/rubrics/platformDecision.js) and the engine
    (src/lib/renewal.js); this file only presents them. */
 
@@ -96,16 +96,16 @@ export default function PlatformDecisionMatrix() {
   const layers = MODEL.layers;
   const onClockStep = currentLayer === layers.length;
   const next = R.next ? toolOf(R.next.tool) : null;
-  const NEXT_WHY = { exit: "the exit and data terms are not known yet, and the negotiation depends on them", evaluate: "the gate says run an evaluation, which starts from your requirements", conditions: "the conditions have to be written into the contract terms", renew: "renewing is the call, so price it against the full term" };
+  const NEXT_WHY = { exit: "the exit and data terms are not known yet, and the negotiation depends on them", evaluate: "the decision says run an evaluation, which starts from your requirements", conditions: "the conditions have to be written into the contract terms", renew: "renewing is the call, so price it against the full term" };
 
   const result = phase === "results" && R.complete
-    ? <Result label="Renewal gate" value={gateOf(R.gate).label} change={`${R.items.filter((x) => x.status === "gap").length} must-have gaps, ${R.items.filter((x) => x.status === "proof").length} proof requests.`} />
-    : <Result label="Needs answered" value={`${R.answered} of ${R.total}`} change="The gate, layer outcomes and checklist appear once every need is answered." />;
+    ? <Result label="Renewal decision" value={gateOf(R.gate).label} change={`${R.items.filter((x) => x.status === "gap").length} must-have gaps, ${R.items.filter((x) => x.status === "proof").length} proof requests.`} />
+    : <Result label="Needs answered" value={`${R.answered} of ${R.total}`} change="The decision, layer outcomes and checklist appear once every need is answered." />;
 
   return (
     <ToolFrame toolId={TOOL_ID} choice={R.next ? R.next.tool : null} section="Renewal Decision" name="Platform Decision" title="Should you renew your platform, add to it, or test the market?"
       lede="Decide what to do at renewal: renew as is, renew with conditions written into the contract, add a specialist for a layer, or run an evaluation. Rate 35 needs across 7 layers, say which ones matter and how you know, and check whether there is time before your notice date."
-      method={frameMethod(methodStamp(TOOL_ID))} result={result} pinned={phase === "results" && R.complete ? { label: "Renewal gate", value: gateOf(R.gate).label } : null}>
+      method={frameMethod(methodStamp(TOOL_ID))} result={result} pinned={phase === "results" && R.complete ? { label: "Renewal decision", value: gateOf(R.gate).label } : null}>
       <style>{FONT_IMPORT_CSS}</style>
 
       {phase === "intro" && (
@@ -169,13 +169,13 @@ export default function PlatformDecisionMatrix() {
           <span style={K.small}>{R.answered} of {R.total} needs answered</span>
           {currentLayer < layers.length
             ? <Button onClick={() => setCurrentLayer(currentLayer + 1)}>{currentLayer < layers.length - 1 ? `Next: L${layers[currentLayer + 1].n}` : "Next: renewal clock"}</Button>
-            : <Button onClick={() => setPhase("results")} disabled={!R.complete}>{R.complete ? "See the renewal gate" : "Answer every need first"}</Button>}
+            : <Button onClick={() => setPhase("results")} disabled={!R.complete}>{R.complete ? "See the renewal decision" : "Answer every need first"}</Button>}
         </div>
       </>)}
 
       {phase === "results" && R.complete && (<>
-        <section aria-label="Renewal gate" style={K.lead}>
-          <span style={K.kicker}>Renewal gate</span>
+        <section aria-label="Renewal decision" style={K.lead}>
+          <span style={K.kicker}>Renewal decision</span>
           <div style={K.stat}>{gateOf(R.gate).label}</div>
           <p style={{ ...K.body, marginTop: 6 }}>{fill(gateOf(R.gate).test)}</p>
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 12 }}>
@@ -207,18 +207,18 @@ export default function PlatformDecisionMatrix() {
           <p style={{ ...K.small, marginTop: 14 }}>Every rule, outcome and threshold is in the <a href={MODEL.methodology} style={K.link}>published method</a>. <button type="button" onClick={() => { setPhase("assess"); setCurrentLayer(0); }} style={{ ...K.link, background: "none", border: "none", cursor: "pointer", padding: 0, font: "inherit" }}>Change your answers</button>.</p>
         </section>
 
-        {helpId && <HelpOffer id={helpId} tool={TOOL_ID} fact={`Your renewal gate: ${gateOf(R.gate).label}.`} />}
+        {helpId && <HelpOffer id={helpId} tool={TOOL_ID} fact={`Your renewal decision: ${gateOf(R.gate).label}.`} />}
 
         <Paper>
-        <ReportActions next={R.next ? { to: R.next.tool, because: "Because " + NEXT_WHY[R.next.because] + "." } : null} toolId={TOOL_ID} toolName="Platform Decision" subtitle="Renewal Gate" routePath={ROUTE} state={state} defaults={DEFAULTS}
+        <ReportActions next={R.next ? { to: R.next.tool, because: "Because " + NEXT_WHY[R.next.because] + "." } : null} toolId={TOOL_ID} toolName="Platform Decision" subtitle="Renewal Decision" routePath={ROUTE} state={state} defaults={DEFAULTS}
           summary={[
-            { label: "Renewal gate", value: gateOf(R.gate).label },
+            { label: "Renewal decision", value: gateOf(R.gate).label },
             { label: "Must-have gaps", value: String(R.items.filter((x) => x.status === "gap").length) },
             { label: "Proof requests", value: String(R.items.filter((x) => x.status === "proof").length) },
             { label: "Months to notice", value: R.clock.months === null ? "Not entered" : String(R.clock.months) },
           ]}
           sections={[
-            { title: "Renewal Gate", type: "text", content: gateOf(R.gate).label + ". " + fill(gateOf(R.gate).test) },
+            { title: "Renewal Decision", type: "text", content: gateOf(R.gate).label + ". " + fill(gateOf(R.gate).test) },
             { title: "Layer Outcomes", type: "table", rows: R.layers.map((l) => ["L" + l.n + " " + l.name + (l.core ? " (core)" : ""), outcomeOf(l.outcome).label + ": " + l.gaps + " of " + l.must + " must-haves are gaps, " + l.proof + " need proof"]) },
             { title: "Negotiation Checklist", type: "actions", items: R.checklist.length ? R.checklist.map((c) => ({ action: c.action, detail: SEV_STYLE[c.severity].label + ". " + MODEL.rules[c.rule].title + ": " + fill(MODEL.rules[c.rule].test), priority: c.severity === "critical" || c.severity === "high" ? "high" : "medium" })) : [{ action: "Nothing to negotiate or prove on these answers.", detail: "Confirm the ratings with the people who run the platform day to day before relying on them.", priority: "medium" }] },
             { title: "Every Need", type: "table", rows: R.items.map((x) => ["L" + x.layer + " " + x.text, x.need === "none" ? "Not needed" : (x.rating === "unknown" ? MODEL.unknown.label : MODEL.ratings.find((r) => r.value === x.rating).label + ", " + MODEL.evidence.find((e) => e.id === x.evidence).label.toLowerCase()) + ", " + MODEL.needLevels.find((n) => n.id === x.need).label.toLowerCase()]) },

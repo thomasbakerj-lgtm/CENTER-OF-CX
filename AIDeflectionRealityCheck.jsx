@@ -713,7 +713,7 @@ export default function AIDeflectionRealityCheck() {
       ["Method", methodStamp(TOOL_ID).text + ", contactcentercx.com/methodology/" + TOOL_ID],
     ]},
     { title: "Vendor Claim to Reality Bridge", type: "table", rows: R.waterfall.map((w) => [w.label, (w.value >= 0 ? "+" : "") + fmt(w.value)]).concat([["Net monthly savings", fmt(R.netSavings)]]) },
-    { title: "Rail Handoff to Downstream Tools", type: "table", rows: R.railPublished ? [
+    { title: "Shared with Your Other Tools", type: "table", rows: R.railPublished ? [
       ["realisticDeflectionRate", R.netAutomationRate.toFixed(1) + "% of total demand, published"],
       ["botResolutionRate", R.botResolutionRate.toFixed(1) + "% of bot-routed traffic, published"],
       ["Consumed by", "Channel Shift Economics, to size the human pool"],

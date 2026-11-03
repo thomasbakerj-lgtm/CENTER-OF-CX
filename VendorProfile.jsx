@@ -989,7 +989,7 @@ function ProfileBody() {
               <div style={{ maxWidth: 480, minWidth: 0 }}>
                 <span style={{ color: ELECTRIC, fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", fontFamily: FONT, display: "block", marginBottom: 8 }}>Community Intelligence</span>
                 <h3 style={{ fontFamily: FONT, fontSize: 22, fontWeight: 400, color: NAVY, margin: "0 0 8px", overflowWrap: "anywhere" }}>Used {v.name}? Share what you've seen.</h3>
-                <p style={{ fontSize: 14, color: MUTED, lineHeight: 1.6, margin: 0, fontFamily: FONT }}>Your experience tells us where to look when we research this vendor. Share what works and flag what doesn't. We read every review; reviews are not published.</p>
+                <p style={{ fontSize: 14, color: MUTED, lineHeight: 1.6, margin: 0, fontFamily: FONT }}>Your experience tells us where to look when we research this vendor. Share what works and flag what doesn't. We read every review and check it before it informs our research. We publish a review only if you agree.</p>
               </div>
               <button onClick={() => setShowReview(true)} style={{ background: HOUSE.action, color: HOUSE.paper, fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 8, border: "none", cursor: "pointer", fontFamily: FONT, boxShadow: "none", flexShrink: 0, maxWidth: "100%" }}>Share Your Experience</button>
             </div>
@@ -1015,7 +1015,7 @@ function ProfileBody() {
             ) : (
               <div>
                 <h3 style={{ fontFamily: FONT, fontSize: 22, color: NAVY, margin: "0 0 4px" }}>Review {v.name}</h3>
-                <p style={{ fontSize: 13, color: MUTED, margin: "0 0 24px", fontFamily: FONT }}>Your feedback is visible to the community and our editorial team. All fields are required unless marked optional.</p>
+                <p style={{ fontSize: 13, color: MUTED, margin: "0 0 24px", fontFamily: FONT }}>We read every review and check it before it informs our research. We publish yours only if you tick the box below. All fields are required unless marked optional.</p>
 
                 <div id="review-form" style={{ display: "flex", flexDirection: "column", gap: 16 }}>
                   <input type="hidden" name="vendor" value={v.name} />
@@ -1104,7 +1104,7 @@ function ProfileBody() {
                   </div>
 
                   <div>
-                    <label htmlFor="rv-reviewer_name" style={{ fontSize: 12, fontWeight: 600, color: SLATE, display: "block", marginBottom: 4, fontFamily: FONT }}>Your name <span style={{ fontWeight: 400, color: MUTED }}>(optional, displayed as first name + last initial)</span></label>
+                    <label htmlFor="rv-reviewer_name" style={{ fontSize: 12, fontWeight: 600, color: SLATE, display: "block", marginBottom: 4, fontFamily: FONT }}>Your name <span style={{ fontWeight: 400, color: MUTED }}>(optional; shown as first name and last initial only if you agree to publish)</span></label>
                     <input id="rv-reviewer_name" name="reviewer_name" style={{ width: "100%", padding: "10px 12px", fontSize: 14, fontFamily: FONT, border: `1px solid ${BORDER}`, borderRadius: 6, background: HOUSE.ink, color: NAVY }} placeholder="Jane S." />
                   </div>
 
@@ -1112,6 +1112,11 @@ function ProfileBody() {
                     <label htmlFor="rv-email" style={{ fontSize: 12, fontWeight: 600, color: SLATE, display: "block", marginBottom: 4, fontFamily: FONT }}>Email <span style={{ fontWeight: 400, color: MUTED }}>(private, for verification only)</span></label>
                     <input id="rv-email" name="email" type="email" required style={{ width: "100%", padding: "10px 12px", fontSize: 14, fontFamily: FONT, border: `1px solid ${BORDER}`, borderRadius: 6, background: HOUSE.ink, color: NAVY }} placeholder="jane@company.com" />
                   </div>
+
+                  <label htmlFor="rv-publish" style={{ display: "flex", gap: 10, alignItems: "flex-start", fontSize: 13, color: SLATE, lineHeight: 1.5, fontFamily: FONT, cursor: "pointer" }}>
+                    <input id="rv-publish" name="publish_consent" type="checkbox" value="yes" style={{ width: 18, height: 18, marginTop: 2, flexShrink: 0 }} />
+                    <span>You may publish my review on this vendor's page, with my first name and last initial. Leave this unticked to share it with us only.</span>
+                  </label>
 
                   <button
                     type="button"
@@ -1122,6 +1127,7 @@ function ProfileBody() {
                       form.querySelectorAll("input, select, textarea").forEach(el => {
                         if (el.name) {
                           if (el.type === "radio") { if (el.checked) formData.append(el.name, el.value); }
+                          else if (el.type === "checkbox") formData.append(el.name, el.checked ? "yes" : "no");
                           else formData.append(el.name, el.value);
                         }
                       });

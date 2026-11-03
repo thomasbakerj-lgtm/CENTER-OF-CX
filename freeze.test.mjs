@@ -238,7 +238,7 @@ section("9. Audit 30 Sep, batch 1: no withdrawn score wording on profiles, offer
   if (hits.length) console.log("   ", hits.join("\n    "));
   ok("the profile rule fires on the retired wording", [...'profile: "IVA-first platform. Strongest AI and observability scores in tier."'.matchAll(FIELD)].some((m) => SCORE.test(m[1])));
   const VP = R("VendorProfile.jsx");
-  ok("profiles no longer ask readers to score the vendor, or promise attributed reviews", !/Score this vendor|Every review is attributed/.test(VP) && /reviews are not published/.test(VP));
+  ok("profiles no longer ask readers to score the vendor, promise attributed reviews, or publish one without consent", !/Score this vendor|Every review is attributed/.test(VP) && /We publish a review only if you agree/.test(VP) && /name="publish_consent" type="checkbox"/.test(VP));
   ok("the help page carries no scored evaluation or competitive context", !/scored evaluation|competitive context/i.test(R("Contact.jsx")));
   ok("the hub's tiles are counts the site can show", !/Decision domains/.test(R("Vendors.jsx")) && /String\(Object\.keys\(CCAAS_RESEARCH\.complete\)\.length\), l: "Researched platforms"/.test(R("Vendors.jsx")));
   const G = R("GatedReport.jsx");

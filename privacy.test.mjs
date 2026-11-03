@@ -40,7 +40,7 @@ ok("describes the practice, not a contract: no 'By using the Site'", !/By using 
 ok("names the operator form and every processor, Google Workspace included", /sole proprietorship based in Arizona/.test(t) && ["Vercel", "PostHog", "Formspree", "Google Workspace", "GitHub"].every((n) => t.includes(n)));
 ok("states PostHog discards IP addresses and runs without its browser library", /set to discard IP addresses/.test(t) && /without PostHog's browser library/.test(t) && !/may use your IP address to estimate/.test(t));
 ok("keeps marketing apart from requests: no bundled 'related updates'", !/occasional related updates/.test(t) && /does not subscribe you/.test(t));
-ok("says vendor reviews are not published and names the email as never public", /not published on the Site today/.test(t) && /Your email address is never published/.test(t));
+ok("says vendor reviews are not published and names the email as never public", /We publish a review only if you tick the box/.test(t) && /Your email address is never published/.test(t));
 ok("gives retention criteria by category, EEA and UK legal bases, and the appeal and agent route", /Newsletter subscriptions are kept while you are subscribed/.test(t) && /legitimate interests/.test(t) && /right to appeal/.test(t) && /authorised agent/.test(t));
 ok("describes reasonable safeguards without promising specific controls", !/strict content security policy|no user accounts or passwords to protect/i.test(t) && /cannot guarantee/.test(t));
 ok("introductions: the vendor handles what it receives under its own practices", /under their own privacy practices and legal responsibilities/.test(t));

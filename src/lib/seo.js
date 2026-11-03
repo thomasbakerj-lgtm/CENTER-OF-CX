@@ -87,8 +87,8 @@ export const SEO_MAP = {
     desc: "The published model behind Governance & Operating Model: 30 decisions in 6 domains, the owner each needs, and the six finding rules and thresholds.",
   },
   "/methodology/platform-decision": {
-    title: `Platform Decision Method: The Renewal Gate | ${SITE}`,
-    desc: "The method behind Platform Decision: 35 needs across 7 layers, must-have gaps, proof requests for unknowns, the renewal gate and the notice-date clock.",
+    title: `Platform Decision Method: The Renewal Decision | ${SITE}`,
+    desc: "The method behind Platform Decision: 35 needs across 7 layers, must-have gaps, proof requests for unknowns, the renewal decision and the notice-date clock.",
   },
   "/methodology/contract-risk": {
     title: `Contract Risk Method: How Each Clause Is Rated | ${SITE}`,

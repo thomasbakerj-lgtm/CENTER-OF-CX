@@ -180,7 +180,7 @@ export const JOURNEY = {
     next: [
       { to: "contract-risk", why: "Check the exit, data and renewal terms the negotiation depends on." },
       { to: "tco-calculator", why: "Price renewing against the alternative over the full term." },
-      { to: "rfp-builder", why: "Turn the layer gaps into requirements when the gate says evaluate." },
+      { to: "rfp-builder", why: "Turn the layer gaps into requirements when the decision says evaluate." },
     ],
   },
   "rfp-builder": {
@@ -268,7 +268,7 @@ export const JOURNEY = {
 };
 
 /* NextDiagnostic (tracker 3-02, P2 task 8). One next step per result, from this graph only. A tool whose engine
-   chooses among its edges from the result (the weakest dimension, the renewal gate, the verdict) passes that choice,
+   chooses among its edges from the result (the weakest dimension, the renewal decision, the verdict) passes that choice,
    `{ to, because }` or a tool id; every other tool gets its first edge. A choice outside the tool's edges is ignored,
    so a page can never name a tool the graph does not route to, and journey.test.mjs proves every choice an engine
    can make is an edge. ReportActions renders the one step on the page and in the PDF. */

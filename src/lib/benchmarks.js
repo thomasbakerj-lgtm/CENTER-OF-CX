@@ -336,7 +336,7 @@ const tLine = (value, unit, rationale) => ({ tool: TCO, kind: "threshold", value
 const tWage = (value, label) => tHeur(value, "USD per hour", `Opening agent wage for the ${label} profile. An internal planning value, not a published median. The platform's sourced wage benchmark is market.wage.agent. A wage still at this value grades cost evidence Directional.`);
 
 const tWageBls = (value, industry, label) => ({ tool: TCO, kind: "market", value, unit: "USD per hour",
-  source: `US Bureau of Labor Statistics, Occupational Outlook Handbook, Customer Service Representatives, pay by industry: median hourly wage in ${industry}, May 2025 (checked by The Center of CX, 28 Sep 2026).`,
+  source: `US Bureau of Labor Statistics, Occupational Outlook Handbook, Customer Service Representatives, pay by industry: median hourly wage in ${industry}, May 2025 (verified by The Center of CX, 28 Sep 2026).`,
   url: "https://www.bls.gov/ooh/office-and-administrative-support/customer-service-representatives.htm", reviewed: "2026-09-29", version: 2,
   rationale: `Opening agent wage for the ${label} profile: the BLS May 2025 median for customer service representatives in ${industry}. A published median rather than the reader's own pay, so a wage still at this value grades cost evidence Directional.` });
 

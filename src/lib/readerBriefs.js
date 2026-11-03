@@ -214,7 +214,7 @@ export const READER_BRIEFS = {
       "Which contact types should the bot handle first?",
       "How will agents pick up conversations the bot escalates?",
     ] },
-    it: { lead: t("^Rail Handoff to Downstream Tools", "^Methodology", "^Assumption set A vs B"), ask: [
+    it: { lead: t("^Shared with Your Other Tools", "^Methodology", "^Assumption set A vs B"), ask: [
       "Which systems must the bot read from and write to for it to resolve contacts?",
       "How is a resolved conversation measured, and by whom?",
       "What does the pilot need to prove technically before rollout?",

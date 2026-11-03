@@ -100,7 +100,7 @@ section("6. The four tools place it, say so, and nothing reads it back");
   const TF = readFileSync("./src/lib/ToolFrame.jsx", "utf8");
   ok("each of the four says so in its privacy line", ["fcr-leakage", "aht-decomposition", "cost-per-contact", "attrition-cost"].every((t) => TF.includes(`"${t}": BENCHMARK_LINE`)) && /add one rounded figure to the reader benchmark/.test(TF));
   const PP = readFileSync("./PrivacyPolicy.jsx", "utf8");
-  ok("the Privacy Policy names the exception, the consent, the random id and the pooling", /reader benchmark/.test(PP) && /tick the consent box/.test(PP) && /random identifier made for that one event/.test(PP) && /pooled groups of five or more/.test(PP) && /PRIVACY_UPDATED = "14 October 2026"/.test(PP));
+  ok("the Privacy Policy names the exception, the consent, the random id and the pooling", /reader benchmark/.test(PP) && /tick the consent box/.test(PP) && /random identifier made for that one event/.test(PP) && /pooled groups of five or more/.test(PP) && /PRIVACY_UPDATED = "3 November 2026"/.test(PP));
   const files = [...readdirSync(".").filter((f) => f.endsWith(".jsx")), ...readdirSync("./src/lib").filter((f) => /\.(js|jsx)$/.test(f)).map((f) => "src/lib/" + f)];
   const readers = files.filter((f) => /benchmarks\/readers\.json|benchmarkExchange/.test(readFileSync("./" + f, "utf8")));
   ok(`only the panel, the box and the tracker read it; no engine, default, flag or grade does [${readers.join(", ")}]`, JSON.stringify(readers.sort()) === JSON.stringify(["src/lib/BenchmarkContribute.jsx", "src/lib/HowOthersReport.jsx", "src/lib/benchmarkExchange.js", "src/lib/track.js"].filter((f) => /benchmark|HowOthers/.test(readFileSync("./" + f, "utf8"))).sort()) && !readers.some((f) => /^[A-Z].*\.jsx$/.test(f)));

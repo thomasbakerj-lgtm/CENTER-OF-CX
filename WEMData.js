@@ -121,11 +121,11 @@ export const buyerShortlists = [
 ];
 
 export const demoGates = [
-  { gate: "Stress Handling Gate", desc: "Vendor must show same-day absenteeism, volume spike, SLA breach, and cross-skill rebalance live.", pass: "Demo shows all four scenarios in the product with clear operational controls.", penalty: -0.5, why: "Prevents polished demos from hiding weak exception handling" },
-  { gate: "Evaluator Trust Gate", desc: "Vendor must explain why AI scored an interaction the way it did.", pass: "Demo shows evidence, rationale, tuning logic, and auditability for an AI score.", penalty: -0.5, why: "Auto-QA without explainability is not operationally trustworthy" },
-  { gate: "Admin Burden Gate", desc: "Vendor must show scorecard maintenance, model tuning, calibration workflow, and supervisor effort.", pass: "Demo proves manageable admin model with role clarity and low services dependency.", penalty: -0.4, why: "Real TCO is driven by ongoing admin burden as well as license cost" },
-  { gate: "Architecture Transparency Gate", desc: "Vendor must map what is native, acquired-native, OEM, and partner-driven.", pass: "Clean architecture map with clear support boundaries.", penalty: -0.3, why: "Vague 'seamless integration' claims hide real operational risk" },
-  { gate: "BPO Multi-Tenant Gate", desc: "Vendor must show multi-client governance, role separation, and reporting isolation.", pass: "Demo shows separate client views, permission models, and isolated reporting.", penalty: -0.3, why: "BPO buyers need governance controls that single-tenant demos don't reveal" },
+  { gate: "Stress Handling Check", desc: "Vendor must show same-day absenteeism, volume spike, SLA breach, and cross-skill rebalance live.", pass: "Demo shows all four scenarios in the product with clear operational controls.", penalty: -0.5, why: "Prevents polished demos from hiding weak exception handling" },
+  { gate: "Evaluator Trust Check", desc: "Vendor must explain why AI scored an interaction the way it did.", pass: "Demo shows evidence, rationale, tuning logic, and auditability for an AI score.", penalty: -0.5, why: "Auto-QA without explainability is not operationally trustworthy" },
+  { gate: "Admin Burden Check", desc: "Vendor must show scorecard maintenance, model tuning, calibration workflow, and supervisor effort.", pass: "Demo proves manageable admin model with role clarity and low services dependency.", penalty: -0.4, why: "Real TCO is driven by ongoing admin burden as well as license cost" },
+  { gate: "Architecture Transparency Check", desc: "Vendor must map what is native, acquired-native, OEM, and partner-driven.", pass: "Clean architecture map with clear support boundaries.", penalty: -0.3, why: "Vague 'seamless integration' claims hide real operational risk" },
+  { gate: "BPO Multi-Tenant Check", desc: "Vendor must show multi-client governance, role separation, and reporting isolation.", pass: "Demo shows separate client views, permission models, and isolated reporting.", penalty: -0.3, why: "BPO buyers need governance controls that single-tenant demos don't reveal" },
 ];
 
 export const brutalConclusions = [
