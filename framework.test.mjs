@@ -39,7 +39,7 @@ section("1. Every gated download exists");
   const iva = src.slice(src.indexOf('"iva-buyer-guide": {'), src.indexOf('"ccaas-buyer-guide": {'));
   ok("IVA guide page names the Phase 1 edition, its date and the PDF's own vendor count (43)", /phase1: true/.test(iva) && /published: "April 2026"/.test(iva) && /43 IVA and conversational AI vendors/.test(iva) && /scores and tiers are withdrawn/.test(iva));
   ok("IVA guide page no longer sells scores, outside validation, superlatives or shortlists", !/50 vendors|validated by Gartner|the best CX|vendor shortlists|scored across/.test(iva));
-  ok("IVA guide search description matches the edition", /Phase 1 edition, April 2026: 43 IVA/.test(readFileSync("./src/lib/seo.js", "utf8")));
+  ok("IVA guide search description matches the edition", /April 2026 edition: 43 IVA/.test(readFileSync("./src/lib/seo.js", "utf8")));
   /* Audit 30 Sep: the PDF itself now says it is the Phase 1 edition, on a first page added before the original. */
   const ivaPdf = readFileSync("./public/IVA-Conversational-AI-Buyer-Guide-2026.pdf").toString("latin1");
   const subj = (ivaPdf.match(/\/Subject <FEFF([0-9A-F]+)>/) || [])[1] || "";

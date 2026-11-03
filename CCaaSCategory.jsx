@@ -70,7 +70,7 @@ function Requested({ v }) {
         <a href={`/vendors/${v.slug}`} style={{ ...K.link, color: HOUSE.mist, fontSize: 17 }}>{v.name}</a>
         {next && <span style={{ ...chip, borderStyle: "dashed" }}>Researching next</span>}
       </div>
-      <p style={K.small}>Not yet researched under the current method. No class and no finding until it is.{v.segment ? ` Earlier Phase 1 description: ${v.segment}.` : ""}</p>
+      <p style={K.small}>Not yet researched in depth. It gets a peer group and findings once we research it.{v.segment ? ` Our earlier description: ${v.segment}.` : ""}</p>
       <div style={{ display: "flex", gap: 14, flexWrap: "wrap", alignItems: "center" }}>
         {!next && (sent
           ? <span role="status" style={K.small}>Request noted. Thank you.</span>
@@ -109,7 +109,7 @@ export default function CCaaSCategory({ initialClass = "all", initialSize = "all
           <span style={{ ...K.kicker, color: ACCENT }}>Vendor Intelligence</span>
           <h1 style={{ margin: 0, fontSize: "clamp(30px, 4vw, 44px)", fontWeight: 700, lineHeight: 1.1, color: HOUSE.mist }}>{CATEGORIES.ccaas.name}</h1>
           <p style={{ ...K.body, maxWidth: 760 }}>A contact center platform runs customer conversations: it routes calls and digital contacts to agents and bots, gives agents their desktop and gives supervisors the controls to run the operation. The category ends where a product only adds one piece around it: a digital-only channel, a CRM, workforce and quality tools, or a virtual agent. Those have their own categories.</p>
-          <p style={{ ...K.small, maxWidth: 760 }}>Phase 1 scores and tiers are withdrawn. Vendors are compared only with peers that do the same job, and nothing on this page ranks them.</p>
+          <p style={{ ...K.small, maxWidth: 760 }}>Scores and tiers from our earlier assessment are withdrawn. We compare each vendor only with platforms that do the same job, and nothing on this page ranks them.</p>
           <CategoryTerms category="ccaas" />
         </header>
 
@@ -166,7 +166,7 @@ export default function CCaaSCategory({ initialClass = "all", initialSize = "all
 
         <section aria-labelledby="notyet" style={{ ...K.panel, display: "flex", flexDirection: "column", gap: 10 }}>
           <h2 id="notyet" style={{ ...K.h2, margin: 0 }}>Not yet researched</h2>
-          <p style={K.small}>These platforms keep their earlier Phase 1 context pages, labelled as such. They get a class only once researched. Asking us to research one sends an anonymous count and nothing else.</p>
+          <p style={K.small}>These platforms keep their earlier profiles, marked as such. Each gets a peer group once we research it. Asking us to research one sends an anonymous count and nothing else.</p>
           <ul style={{ margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: 10 }}>
             {notYet.map((v) => <Requested key={v.slug} v={v} />)}
           </ul>
@@ -210,7 +210,7 @@ export default function CCaaSCategory({ initialClass = "all", initialSize = "all
             <li><a href="/tools/contract-risk" style={K.link}>Contract Risk</a>: the clauses to find before you sign.</li>
             <li><a href="/tools/tco-calculator" style={K.link}>TCO Calculator</a>: what the platform costs to run over the term.</li>
           </ul>
-          <p style={K.small}>Further reading: the <a href="/research/ccaas-buyer-guide" style={K.link}>CCaaS buyer guide</a> (a dated Phase 1 edition) and <a href="/research/ccaas-migration-costs" style={K.link}>why CCaaS migrations rarely cut costs on their own</a>.</p>
+          <p style={K.small}>Further reading: the <a href="/research/ccaas-buyer-guide" style={K.link}>CCaaS buyer guide</a> (the dated April 2026 edition) and <a href="/research/ccaas-migration-costs" style={K.link}>why CCaaS migrations rarely cut costs on their own</a>.</p>
         </section>
       </div>
     </div>

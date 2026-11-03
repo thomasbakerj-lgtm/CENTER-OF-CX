@@ -45,7 +45,7 @@ export default function PaymentCategory() {
               {CATEGORIES.payments.name}
             </h1>
             <p style={{ fontSize: "clamp(15px, 1.6vw, 17px)", color: HOUSE.body, lineHeight: 1.7, maxWidth: 640 }}>
-              {all.length} payment providers across unified commerce, digital-first processors, enterprise in-store, orchestration layers, regional wallets and specialty providers. Listed by segment and name; scores are withdrawn until this category is researched under the current methodology.
+              {all.length} payment providers across unified commerce, digital-first processors, enterprise in-store, orchestration layers, regional wallets and specialty providers. Listed by segment and name; scores from our earlier assessment are withdrawn until we research this category in depth.
             </p>
             <CategoryTerms category="payments" />
           </FadeIn>

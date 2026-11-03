@@ -71,7 +71,7 @@ function Hero() {
                 <span style={{ background: `linear-gradient(135deg, ${ELECTRIC}, ${LIGHT})`, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Mapped by category.</span>
               </h1>
               <p style={{ fontSize: "clamp(15px, 1.6vw, 17px)", color: HOUSE.body, lineHeight: 1.7, maxWidth: 520, fontFamily: FONT }}>
-                Every vendor is mapped to its category and to the layers of the stack it serves. Contact center platforms are researched finding by finding against a published method; the other categories are marked Phase 1 context until their research is complete. The category counts below add up to {VENDOR_PROFILE_COUNT - ADJACENT_PROFILE_COUNT}; the other {ADJACENT_PROFILE_COUNT} are adjacent suites listed on the contact center platforms page.
+                Every vendor is mapped to its category and to the layers of the stack it serves. We research contact center platforms finding by finding, against a published method. Profiles in the other categories are marked as earlier assessments until we finish researching them. The category counts below add up to {VENDOR_PROFILE_COUNT - ADJACENT_PROFILE_COUNT}; the other {ADJACENT_PROFILE_COUNT} are adjacent suites listed on the contact center platforms page.
               </p>
             </div>
             <div style={{ background: HOUSE.navy, border: `1px solid ${alpha(HOUSE.mist, LINE.hair)}`, borderRadius: 12, padding: "28px 24px" }}>
@@ -207,15 +207,15 @@ function HowWeEvaluate() {
         <FadeIn>
           <div style={{ textAlign: "center", maxWidth: 580, margin: "0 auto 56px" }}>
             <Label light>How we evaluate</Label>
-            <Title light>How the vendor profiles are built.</Title>
+            <Title light>How we build each profile.</Title>
           </div>
         </FadeIn>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 20 }}>
           {[
-            { t: "Researched contact center platforms", d: `${Object.keys(CCAAS_RESEARCH.complete).length} CCaaS vendors are researched under the current method: findings with dated public sources, compared only inside a competitive class, with where each platform breaks, what it takes to run, and what to ask for.` },
-            { t: "Phase 1 profiles, labelled", d: "Every other profile carries the earlier Phase 1 assessment as context, and says so on the page. Its scores, tiers and rankings are withdrawn in every category until that category is researched under the current method." },
-            { t: "No scores and no ranks", d: "No profile carries a score, tier or rank, and no vendor pays to appear. Numeric ratings stay withheld until each competitive class has enough researched peers to compare fairly." },
-            { t: "Corrections in the open", d: "Anyone can report an error with a public source. Accepted corrections are noted on the vendor's page, and every report gets an answer." },
+            { t: "Researched in depth", d: `We have researched ${Object.keys(CCAAS_RESEARCH.complete).length} contact center platforms in depth. Every finding cites a dated public source. Each platform is compared only with its peer group. Every profile shows where it breaks, what it takes to run, and what to ask the vendor before you sign.` },
+            { t: "Earlier profiles, clearly marked", d: "Profiles we have not yet researched in depth show our earlier assessment, and the page says so. We have withdrawn that assessment's scores, tiers and rankings. They stay off the site until we finish the research." },
+            { t: "No scores, no rankings, no paid placement", d: "No profile carries a score, tier or rank. No vendor pays to appear. Ratings return once each peer group has enough researched vendors for a fair comparison." },
+            { t: "Corrections in the open", d: "Anyone can report an error, with a public source. We answer every report. When we accept a correction, we note it on the vendor's page." },
           ].map((item, i) => (
             <FadeIn key={i} delay={i * 0.08}>
               <div style={{ background: HOUSE.navy, border: `1px solid ${alpha(HOUSE.mist, LINE.hair)}`, borderRadius: 10, padding: "28px 24px" }}>
@@ -239,7 +239,7 @@ function VendorPagePreview() {
             <Label>Researched vendor pages</Label>
             <Title>The questions a researched profile answers.</Title>
             <p style={{ fontSize: 15, color: SLATE, lineHeight: 1.65, marginTop: 4, fontFamily: FONT }}>
-              Each researched CCaaS profile answers the same {QUESTIONS.length} questions from its sources. Phase 1 profiles show the earlier assessment, labelled as such, until their category is researched.
+              Each researched contact center profile answers the same {QUESTIONS.length} questions from its sources. Other profiles show our earlier assessment, marked as such, until we research their category.
             </p>
           </div>
         </FadeIn>

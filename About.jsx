@@ -59,7 +59,7 @@ export const HOW = [
 /* The independence rules. */
 export const RULES = [
   "No vendor pays to appear, to move, to be left out or to see research before it is published.",
-  "Vendor lists run A to Z. No scores or ranks are shown while the current research is in progress; the earlier Phase 1 scores are withdrawn.",
+  "Vendor lists run A to Z. We show no scores or ranks while our research is in progress, and the scores from our earlier assessment are withdrawn.",
   "An introduction to a vendor, when you ask for one, never changes a list, an order or a finding.",
   "Anyone, including a vendor, can report an error with a public source. Every accepted correction is shown on the vendor's page.",
 ];

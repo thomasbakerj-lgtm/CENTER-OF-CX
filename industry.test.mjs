@@ -62,7 +62,7 @@ for (const [slug, vert] of Object.entries(VERTICALS)) {
   const { CCAAS_TAGS } = await import("./src/lib/research/ccaasTags.js");
   walk(Object.values(CCAAS_TAGS).map((x) => [x.sizeNote, x.uc && x.uc.note, x.publicSector && x.publicSector.note]));
   strings.sort((a, b) => b.length - a.length);
-  let own = t.replace("Phase 1 vertical fit scores are withdrawn", "").replace("Nothing here ranks a vendor", "").split("carries no grade").join("");
+  let own = t.replace("The industry fit scores from our earlier assessment are withdrawn", "").replace("Nothing here ranks a vendor", "").split("carries no grade").join("");
   for (const x of strings) own = own.split(x).join(" ");
   ok(`no score, rank, tier, grade or fit claim of its own [${(own.match(/.{0,30}\b(scores?|rank\w*|tiers?|leader\w*|grade|recommended|best fit|top \d+)\b.{0,20}/i) || [""])[0]}]`, !/\b(scores?|rank\w*|tiers?|leader\w*|grade|recommended|best fit|top \d+)\b/i.test(own));
   ok(`no figure of its own [${(own.match(/.{0,30}\d+\s*%.{0,10}/) || [""])[0]}]`, !/\d+\s*%/.test(own));

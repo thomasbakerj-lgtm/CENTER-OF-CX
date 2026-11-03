@@ -63,16 +63,16 @@ export default function Research() {
 
         <Section id="vendors" kicker="Vendor Intelligence" title="Vendor research, one category at a time">
           <p style={K.body}>
-            Contact center platforms come first: {CCAAS_COMPLETE_COUNT} of {ccaasTotal} researched under the current method, across {INDEX.classes.length} competitive classes
-            {calibrated ? ` (${calibrated} calibrated)` : ""}, validated between {longDate(INDEX.validatedFrom)} and {longDate(INDEX.validatedTo)}.
-            {CCAAS_RESEARCH.next ? ` Next: ${vendorDisplayName(CCAAS_RESEARCH.next)}.` : ""} Each profile shows every finding with its evidence and date, and numeric ratings stay locked until each class has enough validated peers.
+            Contact center platforms come first: {CCAAS_COMPLETE_COUNT} of {ccaasTotal} researched in depth, across {INDEX.classes.length} peer groups
+            {calibrated ? ` (${calibrated} ready to compare)` : ""}, checked between {longDate(INDEX.validatedFrom)} and {longDate(INDEX.validatedTo)}.
+            {CCAAS_RESEARCH.next ? ` Next: ${vendorDisplayName(CCAAS_RESEARCH.next)}.` : ""} Each profile shows every finding with its evidence and date. Ratings stay off the site until each peer group has enough researched vendors.
           </p>
           <ol style={{ margin: 0, paddingLeft: 22, display: "flex", flexDirection: "column", gap: 6 }}>
             {RESEARCH_ORDER.map((slug) => {
               const c = CATEGORIES[slug];
               return (
                 <li key={slug} style={K.body}>
-                  <a href={c.page} style={link}>{c.name}</a>: {slug === "ccaas" ? "current research published" : "Phase 1 context, listed A to Z, not yet researched under the current method"}.
+                  <a href={c.page} style={link}>{c.name}</a>: {slug === "ccaas" ? "researched in depth, findings published" : "earlier assessment, listed A to Z, not yet researched in depth"}.
                 </li>
               );
             })}

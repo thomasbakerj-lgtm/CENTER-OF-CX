@@ -23,7 +23,7 @@ export function ScoresWithdrawn({ category }) {
         <div style={{ maxWidth: 760 }}>
           <span style={{ color: ELECTRIC, fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase" }}>Scores withdrawn</span>
           <h2 style={{ ...SERIF, fontSize: 28, color: NAVY, margin: "8px 0 12px" }}>Why this page no longer ranks vendors.</h2>
-          <p style={{ fontSize: 15, color: SLATE, lineHeight: 1.7, margin: 0 }}>The earlier assessment of {category} scored every vendor on one model and placed unlike platforms on a single scale. Current research compares vendors only inside a class of platforms built for the same job, and publishes ratings only once a class has enough validated peers. Until {category} is researched that way, its scores, tiers and rankings are withdrawn. Vendors are listed by name, and every profile is labelled Phase 1 context.</p>
+          <p style={{ fontSize: 15, color: SLATE, lineHeight: 1.7, margin: 0 }}>Our earlier assessment of {category} scored every vendor on one scale, so platforms built for different jobs were ranked against each other. We now compare a vendor only with platforms built for the same job, and we publish ratings only when that peer group has enough researched vendors. Until we research {category} that way, its scores, tiers and rankings are withdrawn. Vendors are listed by name, and every profile is marked as an earlier assessment.</p>
         </div>
       </div>
     </section>

@@ -72,14 +72,14 @@ export function ccaasResearchLabel(slug) {
     const rec = CCAAS_RESEARCH.complete[String(slug)];
     return {
       status: "complete",
-      short: "Current research complete",
-      text: `Current research on this vendor passed its completion gate on ${fmtDate(rec.validated)}. This page still shows the earlier Phase 1 assessment and is being rebuilt from the new research. Numeric scores are withdrawn until class-specific ratings are validated.`,
+      short: "Researched in depth",
+      text: `We finished researching this vendor in depth on ${fmtDate(rec.validated)}. This page still shows our earlier assessment while we rebuild it from the new research. Its scores are withdrawn until we can rate it fairly against its peer group.`,
     };
   }
   return {
     status: "phase1",
-    short: "Phase 1 context",
-    text: "Phase 1 context, not yet researched under the current methodology. Numeric scores are withdrawn until this vendor is researched and class-specific ratings are validated.",
+    short: "Earlier assessment",
+    text: "Earlier assessment. We have not yet researched this vendor in depth. Its scores are withdrawn until we do and can rate it fairly against its peer group.",
   };
 }
 
@@ -100,8 +100,8 @@ export function researchStatus(category, slug) {
 export function phase1Label() {
   return {
     status: "phase1",
-    short: "Phase 1 context",
-    text: "Phase 1 context, not yet researched under the current methodology. Numeric scores, tiers and rankings are withdrawn until this category is researched and class-specific ratings are validated.",
+    short: "Earlier assessment",
+    text: "Earlier assessment. We have not yet researched this category in depth. Its scores, tiers and rankings are withdrawn until we do.",
   };
 }
 

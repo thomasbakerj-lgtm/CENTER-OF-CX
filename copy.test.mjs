@@ -118,8 +118,7 @@ console.log("\n6. Retired unsourced figures stay retired");
   const ALLOWED = [
     ["BusinessCaseBuilder.jsx", "not a measured outcome"],        // doctrine claim classes; pinned by bcb.test
     ["ChannelShiftModel.jsx", "capacity, not headcount"],         // pinned by channel.report
-    ["Research.jsx", "not yet researched"],                       // the Phase 1 label (TB, S22); pinned by freeze.test
-    ["src/lib/researchStatus.js", "not yet researched"],          // the same label, twice
+    ["Research.jsx", "not yet researched"],                       // the earlier-assessment label (TB, S22); pinned by researchpage.test
     ["TermsOfService.jsx", "not necessarily those of"],           // approved legal text
     ["src/lib/benchmarks.js", "not a published median"],          // pinned by tco.test
     ["src/lib/categoryRegistry.js", "not current evidence"],      // internal registry note, CLAUDE.md section 7 wording

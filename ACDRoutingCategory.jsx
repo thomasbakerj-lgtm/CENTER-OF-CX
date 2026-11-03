@@ -61,7 +61,7 @@ export default function ACDRoutingCategory() {
               {CATEGORIES["acd-routing"].name}
             </h1>
             <p style={{ fontSize: "clamp(15px, 1.6vw, 17px)", color: HOUSE.body, lineHeight: 1.7, maxWidth: 620 }}>
-              {all.length} ACD and routing vendors: routing logic, data inputs, queue architecture, failover, observability, AI routing, integrations and global scale. Listed by segment and name; scores are withdrawn until this category is researched under the current methodology.
+              {all.length} ACD and routing vendors: routing logic, data inputs, queue architecture, failover, observability, AI routing, integrations and global scale. Listed by segment and name; scores from our earlier assessment are withdrawn until we research this category in depth.
             </p>
             <CategoryTerms category="acd-routing" />
           </FadeIn>

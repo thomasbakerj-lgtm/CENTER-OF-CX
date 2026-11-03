@@ -657,12 +657,12 @@ section("J. CCaaS buyer guide summary layer reconciles with the published PDF");
      downloadable as a dated Phase 1 edition, and the page says so. */
   ok("J3  the summary carries no scoring model, tier, adjacent or best-fit data", !/domains: \[|dimensions: \d|tiers: \[|adjacent: \[|fit: \[/.test(blk));
   ok("J4  the summary renders no tier, score band or best-fit table", !/s\.tiers|summary\.tiers|s\.fit|s\.domains|Score \{t\.band\}|The four tiers/.test(gr));
-  ok("J5  the page names the PDF a Phase 1 edition", /phase1: true/.test(blk) && /Phase 1 edition, published \{report\.published\}/.test(gr));
+  ok("J5  the page names the PDF a Phase 1 edition", /phase1: true/.test(blk) && /April 2026 edition, published \{report\.published\}/.test(gr));
   ok("J9  the PDF link resolves to a shipped file", blk.includes('pdf: "/CCaaS-Platform-Buyer-Guide-2026.pdf"'));
   ok("J10 no stale 7-dimension claim in the guide config", !/\b7 (weighted )?dimensions/.test(blk));
   const seoSrc = readFileSync("./src/lib/seo.js", "utf8");
   const seoDesc = (seoSrc.match(/"\/research\/ccaas-buyer-guide": \{[\s\S]*?desc: "([^"]*)"/) || ["", ""])[1];
-  ok("J11 seo description names the Phase 1 edition and its withdrawn scores", /Phase 1 edition/.test(seoDesc) && /withdrawn/.test(seoDesc));
+  ok("J11 seo description names the Phase 1 edition and its withdrawn scores", /April 2026 edition/.test(seoDesc) && /withdrawn/.test(seoDesc));
   /* Phase 10 rebuilt the Research landing; its report list names the guide with its true page count. */
   ok("J12 Research lists the guide with the PDF page count", /href: "\/research\/ccaas-buyer-guide", what: "[^"]*\b/.test(readFileSync("./Research.jsx", "utf8")) && new RegExp(`href: "/research/ccaas-buyer-guide", what: "[^"]*\\b${pdfPages} pages`).test(readFileSync("./Research.jsx", "utf8")));
   /* Redesign Phase 5 retired the homepage's report card; the guide stays on the Research page (J12). Should the homepage

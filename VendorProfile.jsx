@@ -202,7 +202,7 @@ function ProfileBody() {
         <section style={{ background: HOUSE.navy, padding: "64px 28px" }}>
           <div style={WRAP}>
             <FadeIn>
-              <Section label="Research status" title="Phase 1 context." dark>
+              <Section label="Research status" title="Earlier assessment." dark>
                 <p style={{ fontSize: 15, color: HOUSE.body, lineHeight: 1.7, marginBottom: 20 }}>{phase1Label().text}</p>
                 <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
                   <a href="/vendors/iva" style={{ fontSize: 13, fontWeight: 600, color: LIGHT, background: HOUSE.navy, padding: "8px 16px", borderRadius: 6, border: `1px solid ${alpha(HOUSE.mist, LINE.hair)}` }}>← Back to {CATEGORIES.iva.name}</a>
@@ -297,7 +297,7 @@ function ProfileBody() {
                   </Section>
                 </div>
                 <div>
-                  <Section label="Phase 1 assessment" title="Where to probe.">
+                  <Section label="Earlier assessment" title="Where to probe.">
                     <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                       {[aa.weakness1, aa.weakness2, aa.watchout].filter(Boolean).map((w, i) => (
                         <div key={i} style={{ display: "flex", gap: 12, padding: "14px 18px", background: HOUSE.ink, border: `1px solid ${BORDER}`, borderRadius: 8 }}>
@@ -814,7 +814,7 @@ function ProfileBody() {
       {/* Weaknesses */}
       <section style={{ background: HOUSE.ink, padding: "64px 28px", borderBottom: `1px solid ${BORDER}` }}>
         <div style={WRAP}>
-          <Section label="Phase 1 assessment" title="Where they break.">
+          <Section label="Earlier assessment" title="Where it breaks.">
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
               {v.weaknesses.map((w, i) => (
                 <div key={i} style={{ display: "flex", gap: 12, padding: "14px 18px", background: WARM, border: `1px solid ${BORDER}`, borderRadius: 8 }}>

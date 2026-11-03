@@ -133,7 +133,7 @@ function TakeItFurther({ p, slug }) {
     ["/tools/contract-risk", "Check the contract before you sign", "Contract Risk: the clauses to find.", "test-it"],
     ["/tools/tco-calculator", "Model the cost over the term", "TCO Calculator.", "test-it"],
     ["/tools/license-gap", "Find what the bundle leaves out", "License Gap.", "test-it"],
-    ["/tools/vendor-match", "Build a starting list", "Vendor Match. It still runs on its Phase 1 model and does not read this research yet.", "test-it"],
+    ["/tools/vendor-match", "Build a starting list", "Vendor Match. It still runs on our earlier model and does not use this research yet.", "test-it"],
   ];
   return (
     <section aria-label="Take it further" style={K.panel}>
@@ -428,7 +428,7 @@ function SourcesView({ p, manifestDate }) {
         ))}
       </ul>
     </section>
-    <p style={K.small}>Research checkpoint {manifestDate ? `of ${fmtDate(manifestDate)}` : ""}. Ratings stay unpublished until each competitive class has enough validated peers to compare fairly.</p>
+    <p style={K.small}>Research as of {manifestDate ? fmtDate(manifestDate) : "the latest update"}. We publish ratings only once each peer group has enough researched vendors to compare fairly.</p>
   </>);
 }
 
